@@ -30,7 +30,8 @@ def _evict_old_runs() -> None:
     """Evict completed/error runs older than TTL; cap total entries at max size."""
     now = time.monotonic()
     stale = [
-        k for k, v in _run_status.items()
+        k
+        for k, v in _run_status.items()
         if v.get("status") in ("completed", "error")
         and now - v.get("_ts", now) > _STATUS_TTL_SECONDS
     ]
@@ -84,8 +85,7 @@ async def run_pack(name: str, background_tasks: BackgroundTasks):
 
     # Concurrency limit: one active run per pack name
     already_running = any(
-        v.get("pack") == name and v.get("status") == "running"
-        for v in _run_status.values()
+        v.get("pack") == name and v.get("status") == "running" for v in _run_status.values()
     )
     if already_running:
         raise HTTPException(
