@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 
-import pytest
 
 from beacon.models.envelope import Severity
 from beacon.telemetry.aggregator import AggregatedWindow

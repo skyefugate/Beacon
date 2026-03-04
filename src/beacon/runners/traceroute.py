@@ -147,7 +147,7 @@ class TracerouteRunner(BaseTestRunner):
 
             # Parse RTT tokens: look for "NNN.NNN ms" or "*"
             # Use a regex that requires at least one digit before optional decimal
-            rtt_tokens = re.findall(r"(\d+(?:\.\d+)?)\s*ms|\*", rest)
+            re.findall(r"(\d+(?:\.\d+)?)\s*ms|\*", rest)
 
             # rtt_tokens will be a list of either captured groups (numeric str) or
             # empty strings for '*' matches. Let's parse more carefully.

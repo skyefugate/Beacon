@@ -90,7 +90,7 @@ def status() -> None:
     else:
         console.print("[yellow]Telemetry daemon is not running[/yellow]")
 
-    console.print(f"\n[bold]Configuration:[/bold]")
+    console.print("\n[bold]Configuration:[/bold]")
     ts = settings.telemetry
     console.print(f"  Enabled:        {ts.enabled}")
     console.print(f"  Window:         {ts.window_seconds}s")

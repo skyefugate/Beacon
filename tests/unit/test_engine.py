@@ -5,7 +5,6 @@ from __future__ import annotations
 from datetime import datetime, timezone, timedelta
 from uuid import uuid4
 
-import pytest
 
 from beacon.engine.correlator import EventCorrelator
 from beacon.engine.fault_domain import FaultDomainEngine

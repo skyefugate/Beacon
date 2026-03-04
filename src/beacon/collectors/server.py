@@ -17,7 +17,6 @@ from beacon.collectors.device import DeviceCollector
 from beacon.collectors.lan import LANCollector
 from beacon.collectors.path import PathCollector
 from beacon.collectors.wifi import WiFiCollector
-from beacon.models.envelope import PluginEnvelope
 from beacon.runners.base import RunnerConfig
 from beacon.runners.ping import PingRunner
 from beacon.runners.traceroute import TracerouteRunner

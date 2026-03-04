@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from unittest.mock import MagicMock, patch
 
-from beacon.telemetry.governor import GovernorAdvice, ResourceGovernor
+from beacon.telemetry.governor import ResourceGovernor
 
 
 class TestResourceGovernor:

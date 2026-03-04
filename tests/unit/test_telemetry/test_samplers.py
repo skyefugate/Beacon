@@ -20,7 +20,7 @@ class TestWiFiSampler:
     @patch("beacon.telemetry.samplers.wifi.asyncio")
     async def test_macos_airport_success(self, mock_asyncio, mock_platform):
         mock_platform.system.return_value = "Darwin"
-        sampler = WiFiSampler()
+        WiFiSampler()
 
         airport_output = (
             "     agrCtlRSSI: -55\n"

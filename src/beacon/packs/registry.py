@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
-from typing import Any
 
 from beacon.collectors.base import BaseCollector
 from beacon.collectors.device import DeviceCollector

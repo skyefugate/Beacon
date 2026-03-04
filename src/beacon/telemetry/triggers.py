@@ -8,7 +8,6 @@ aggregated windows rather than raw metrics.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
 from enum import Enum
 
 from beacon.models.envelope import Event, Severity

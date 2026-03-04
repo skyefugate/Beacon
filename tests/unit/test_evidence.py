@@ -6,7 +6,6 @@ from datetime import datetime, timezone
 from unittest.mock import MagicMock, patch
 from uuid import uuid4
 
-import pytest
 
 from beacon.evidence.manifest import build_manifest
 from beacon.evidence.builder import EvidencePackBuilder, _capture_health

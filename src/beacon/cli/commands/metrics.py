@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import typer
 
-from beacon.cli.output import console, print_error, print_json
+from beacon.cli.output import print_error, print_json
 
 metrics_app = typer.Typer(help="Query metrics")
 

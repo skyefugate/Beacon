@@ -7,7 +7,7 @@ against collected data to produce per-domain scores.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 from beacon.models.envelope import Event, Metric, PluginEnvelope
 from beacon.models.fault import FaultDomain

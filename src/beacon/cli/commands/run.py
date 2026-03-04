@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import json
-import sys
 import time
 
 import typer
@@ -37,7 +36,6 @@ def _run_locally(pack_name: str, output_path: str | None) -> None:
     from beacon.config import get_settings
     from beacon.evidence.builder import EvidencePackBuilder
     from beacon.packs.executor import PackExecutor
-    from beacon.packs.loader import PackLoader
     from beacon.packs.registry import PackRegistry, PluginRegistry
     from beacon.storage.evidence_store import EvidenceStore
 
@@ -90,19 +88,19 @@ def _run_locally(pack_name: str, output_path: str | None) -> None:
 
     if fd.fault_domain.value == "unknown" and fd.confidence == 0.0:
         if total_metrics > 0:
-            console.print(f"[bold]Result:[/bold] [green]No faults detected[/green]")
+            console.print("[bold]Result:[/bold] [green]No faults detected[/green]")
             console.print(f"[bold]Detail:[/bold] {total_metrics} metrics collected, all within normal ranges")
         else:
-            console.print(f"[bold]Fault Domain:[/bold] unknown (insufficient data)")
+            console.print("[bold]Fault Domain:[/bold] unknown (insufficient data)")
     else:
         console.print(f"[bold]Fault Domain:[/bold] [yellow]{fd.fault_domain.value}[/yellow]")
         console.print(f"[bold]Confidence:[/bold] {fd.confidence:.1%}")
         if fd.evidence_refs:
-            console.print(f"[bold]Evidence:[/bold]")
+            console.print("[bold]Evidence:[/bold]")
             for ref in fd.evidence_refs[:5]:
                 console.print(f"  - {ref}")
         if fd.competing_hypotheses:
-            console.print(f"[bold]Other possibilities:[/bold]")
+            console.print("[bold]Other possibilities:[/bold]")
             for hyp in fd.competing_hypotheses[:3]:
                 console.print(f"  - {hyp.fault_domain.value}: {hyp.confidence:.1%}")
 

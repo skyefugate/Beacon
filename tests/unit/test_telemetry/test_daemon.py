@@ -2,10 +2,8 @@
 
 from __future__ import annotations
 
-from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
-import pytest
 
 from beacon.config import BeaconSettings
 from beacon.telemetry.daemon import _build_scheduler, read_pid
