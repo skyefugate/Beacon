@@ -9,6 +9,8 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import time
+from datetime import datetime, timezone
 from typing import Any
 
 from beacon.config import BeaconSettings
@@ -20,6 +22,11 @@ from beacon.telemetry.export.base import BaseExporter
 from beacon.telemetry.sampler import BaseSampler
 
 logger = logging.getLogger(__name__)
+
+# If elapsed time between samples exceeds this multiplier of the expected
+# interval, we treat the gap as a probable sleep/wake event and emit a
+# marker metric so consumers can annotate the gap in their time-series.
+_SLEEP_WAKE_GAP_MULTIPLIER = 3
 
 
 class TelemetryScheduler:
@@ -167,9 +174,78 @@ class TelemetryScheduler:
         except Exception as exc:
             logger.warning("Escalation pack '%s' failed: %s", pack_name, exc)
 
+
+    async def _emit_sleep_wake_gap(
+        self, sampler_name: str, gap_seconds: float, expected_interval: float
+    ) -> None:
+        """Emit a t_system_event metric marking a probable sleep/wake gap.
+
+        When the elapsed wall-clock time between two consecutive samples of the
+        same sampler exceeds _SLEEP_WAKE_GAP_MULTIPLIER times the expected
+        sampling interval, the process was almost certainly suspended (system
+        sleep, container pause, etc.).  We record the gap so that time-series
+        consumers can annotate or interpolate over it rather than treating it as
+        a true data gap caused by the sampler failing.
+
+        Args:
+            sampler_name: Name of the sampler whose loop detected the gap.
+            gap_seconds: Actual wall-clock elapsed time in seconds.
+            expected_interval: The configured sampling interval in seconds.
+        """
+        now = datetime.now(timezone.utc)
+        metric = Metric(
+            measurement="t_system_event",
+            fields={
+                "gap_seconds": gap_seconds,
+                "expected_interval": expected_interval,
+            },
+            tags={
+                "event_type": "sleep_wake_gap",
+                "sampler": sampler_name,
+            },
+            timestamp=now,
+        )
+        try:
+            self._aggregator.push([metric])
+            await self._buffer.write_points([metric])
+        except Exception as exc:
+            logger.debug("Failed to record sleep/wake gap metric: %s", exc)
+
     async def _sampler_loop(self, sampler: BaseSampler) -> None:
-        """Repeatedly sample at the configured interval."""
+        """Repeatedly sample at the configured interval.
+
+        Between each iteration the loop records the wall-clock time so it can
+        detect when the process was suspended (system sleep).  If the elapsed
+        time since the last sample is greater than
+        _SLEEP_WAKE_GAP_MULTIPLIER x interval, a t_system_event metric
+        is emitted before the regular sample so consumers can annotate the gap.
+        """
+        last_sample_wall = None
+
         while self._running:
+            interval = self._interval_overrides.get(
+                sampler.name,
+                sampler.default_interval,
+            )
+
+            # --- Sleep/wake gap detection -----------------------------------
+            now_wall = time.monotonic()
+            if last_sample_wall is not None:
+                elapsed = now_wall - last_sample_wall
+                threshold = interval * _SLEEP_WAKE_GAP_MULTIPLIER
+                if elapsed > threshold:
+                    logger.warning(
+                        "Sleep/wake gap detected for sampler '%s': "
+                        "%.1fs elapsed (expected ~%ds, threshold %.1fs)",
+                        sampler.name,
+                        elapsed,
+                        interval,
+                        threshold,
+                    )
+                    await self._emit_sleep_wake_gap(sampler.name, elapsed, float(interval))
+            last_sample_wall = time.monotonic()
+            # ----------------------------------------------------------------
+
             try:
                 metrics = await sampler.sample()
                 if metrics:
@@ -180,10 +256,6 @@ class TelemetryScheduler:
             except Exception as e:
                 logger.warning("Sampler %s error: %s", sampler.name, e)
 
-            interval = self._interval_overrides.get(
-                sampler.name,
-                sampler.default_interval,
-            )
             try:
                 await asyncio.sleep(interval)
             except asyncio.CancelledError:
