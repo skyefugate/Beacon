@@ -171,6 +171,37 @@ DEFAULT_TRIGGERS: list[TriggerRule] = [
         severity=Severity.WARNING,
         message_template="Wi-Fi RSSI sudden drop: delta={actual:.1f} dBm",
     ),
+    TriggerRule(
+        name="high_disk_io_latency",
+        measurement="t_disk_io",
+        field_name="avg_latency_ms",
+        stat="mean",
+        operator=">",
+        value=100.0,
+        severity=Severity.WARNING,
+        message_template="Disk I/O latency mean={actual:.0f}ms exceeds 100ms",
+    ),
+    TriggerRule(
+        name="disk_usage_critical",
+        measurement="t_disk_usage",
+        field_name="used_percent",
+        stat="mean",
+        operator=">",
+        value=90.0,
+        severity=Severity.CRITICAL,
+        message_template="Disk usage critical: mean={actual:.1f}% exceeds 90%",
+    ),
+    TriggerRule(
+        name="disk_usage_high",
+        measurement="t_disk_usage",
+        field_name="used_percent",
+        stat="mean",
+        trigger_type=TriggerType.SUSTAINED,
+        operator=">",
+        value=80.0,
+        severity=Severity.WARNING,
+        message_template="Disk usage sustained high: mean={actual:.1f}% exceeds 80%",
+    ),
 ]
 
 
