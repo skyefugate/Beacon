@@ -77,6 +77,7 @@ class TelemetrySettings(BaseSettings):
     tier0_dns_interval: int = 30
     tier0_http_interval: int = 30
     tier0_device_interval: int = 15
+    tier0_nic_interval: int = 30
 
     # Tier 1 / Tier 2 intervals (activated by escalation)
     tier1_wifi_quality_interval: int = 5
