@@ -1,0 +1,15 @@
+.git
+.venv
+.venv-agent
+ui/node_modules
+__pycache__
+*.pyc
+*.pyo
+.pytest_cache
+.mypy_cache
+.ruff_cache
+data/
+*.egg-info
+dist/
+build/
+.env
