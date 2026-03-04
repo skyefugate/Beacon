@@ -5,7 +5,6 @@ from __future__ import annotations
 from unittest.mock import MagicMock, patch
 from uuid import uuid4
 
-import pytest
 
 from beacon.runners.base import RunnerConfig
 from beacon.runners.ping import PingRunner
@@ -274,7 +273,6 @@ class TestThroughputRunner:
         assert "skipping" in envelope.notes[0].lower()
 
     def test_iperf3_not_installed(self):
-        import subprocess
 
         with patch("beacon.runners.throughput.subprocess.run") as mock_run:
             mock_run.side_effect = FileNotFoundError("iperf3 not found")

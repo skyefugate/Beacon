@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 
-import pytest
 
 from beacon.events.threshold import ThresholdMonitor, ThresholdRule
 from beacon.events.wifi_events import WiFiEventDetector

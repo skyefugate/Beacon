@@ -8,7 +8,6 @@ client dependency is installed for future migration.
 from __future__ import annotations
 
 import logging
-from datetime import datetime
 from typing import Any
 
 from influxdb_client import InfluxDBClient, Point, WritePrecision

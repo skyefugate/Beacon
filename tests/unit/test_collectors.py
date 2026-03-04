@@ -5,7 +5,6 @@ from __future__ import annotations
 from unittest.mock import MagicMock, patch
 from uuid import uuid4
 
-import pytest
 
 from beacon.collectors.device import DeviceCollector
 from beacon.collectors.lan import LANCollector

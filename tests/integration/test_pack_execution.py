@@ -12,7 +12,7 @@ from beacon.config import BeaconSettings, reset_settings
 from beacon.evidence.builder import EvidencePackBuilder
 from beacon.models.envelope import Metric, PluginEnvelope
 from beacon.packs.executor import PackExecutor
-from beacon.packs.registry import PackRegistry, PluginRegistry
+from beacon.packs.registry import PluginRegistry
 from beacon.packs.schema import PackDefinition, StepConfig
 from beacon.storage.evidence_store import EvidenceStore
 

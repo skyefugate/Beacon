@@ -9,7 +9,6 @@ import asyncio
 import json
 import logging
 import platform
-import re
 
 from beacon.models.envelope import Metric
 from beacon.telemetry.sampler import BaseSampler

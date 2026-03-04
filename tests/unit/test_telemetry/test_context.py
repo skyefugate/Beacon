@@ -159,7 +159,7 @@ class TestNetworkTopology:
         with patch("beacon.telemetry.samplers.context.Path") as MockPath:
             MockPath.return_value.read_text.return_value = resolv_content
             # Patch the Path("/etc/resolv.conf") call
-            result = sampler._get_dns_servers.__wrapped__(sampler) if hasattr(sampler._get_dns_servers, '__wrapped__') else None
+            sampler._get_dns_servers.__wrapped__(sampler) if hasattr(sampler._get_dns_servers, '__wrapped__') else None
 
         # Test directly with mock
         with patch.object(ContextSampler, "_get_dns_servers", return_value="8.8.4.4,8.8.8.8"):
