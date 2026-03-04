@@ -1,5 +1,5 @@
 # Stage 1: Build the React dashboard
-FROM node:20-slim AS ui-build
+FROM node:25-slim AS ui-build
 WORKDIR /ui
 COPY ui/package.json ui/package-lock.json ./
 RUN npm ci
