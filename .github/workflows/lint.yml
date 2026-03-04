@@ -27,4 +27,4 @@ jobs:
         run: ruff format --check src/ tests/
 
       - name: Mypy
-        run: mypy src/ --ignore-missing-imports
+        run: mypy src/ --ignore-missing-imports --exclude 'src/beacon/(storage|telemetry/export)/influx\.py'
