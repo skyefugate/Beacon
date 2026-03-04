@@ -324,3 +324,136 @@ class TestDeltaTrigger:
         )
         assert results[0].fired is True  # -15 dBm drop exceeds threshold
         assert results[0].event is not None
+
+
+class TestDiskTriggers:
+    """Tests for disk I/O latency and disk usage escalation triggers."""
+
+    def test_high_disk_io_latency_fires(self):
+        from beacon.telemetry.triggers import DEFAULT_TRIGGERS
+
+        rule = next(r for r in DEFAULT_TRIGGERS if r.name == "high_disk_io_latency")
+        evaluator = TriggerEvaluator(rules=[rule])
+        windows = [
+            _make_window(
+                measurement="t_disk_io",
+                field_name="avg_latency_ms",
+                mean=150.0,
+            )
+        ]
+        results = evaluator.evaluate(windows)
+        assert results[0].fired is True
+
+    def test_high_disk_io_latency_does_not_fire_below_threshold(self):
+        from beacon.telemetry.triggers import DEFAULT_TRIGGERS
+
+        rule = next(r for r in DEFAULT_TRIGGERS if r.name == "high_disk_io_latency")
+        evaluator = TriggerEvaluator(rules=[rule])
+        windows = [
+            _make_window(
+                measurement="t_disk_io",
+                field_name="avg_latency_ms",
+                mean=50.0,
+            )
+        ]
+        results = evaluator.evaluate(windows)
+        assert results[0].fired is False
+
+    def test_disk_usage_critical_fires_above_90(self):
+        from beacon.telemetry.triggers import DEFAULT_TRIGGERS, Severity
+
+        rule = next(r for r in DEFAULT_TRIGGERS if r.name == "disk_usage_critical")
+        evaluator = TriggerEvaluator(rules=[rule])
+        windows = [
+            _make_window(
+                measurement="t_disk_usage",
+                field_name="used_percent",
+                mean=95.0,
+            )
+        ]
+        results = evaluator.evaluate(windows)
+        assert results[0].fired is True
+        assert results[0].event is not None
+        assert results[0].event.severity == Severity.CRITICAL
+
+    def test_disk_usage_critical_does_not_fire_below_90(self):
+        from beacon.telemetry.triggers import DEFAULT_TRIGGERS
+
+        rule = next(r for r in DEFAULT_TRIGGERS if r.name == "disk_usage_critical")
+        evaluator = TriggerEvaluator(rules=[rule])
+        windows = [
+            _make_window(
+                measurement="t_disk_usage",
+                field_name="used_percent",
+                mean=85.0,
+            )
+        ]
+        results = evaluator.evaluate(windows)
+        assert results[0].fired is False
+
+    def test_disk_usage_high_is_sustained_type(self):
+        from beacon.telemetry.triggers import DEFAULT_TRIGGERS, TriggerType
+
+        rule = next(r for r in DEFAULT_TRIGGERS if r.name == "disk_usage_high")
+        assert rule.trigger_type == TriggerType.SUSTAINED
+        assert rule.severity == Severity.WARNING
+        assert rule.value == 80.0
+
+    def test_disk_usage_high_requires_consecutive_windows(self):
+        from beacon.telemetry.triggers import DEFAULT_TRIGGERS
+
+        rule = next(r for r in DEFAULT_TRIGGERS if r.name == "disk_usage_high")
+        evaluator = TriggerEvaluator(rules=[rule])
+
+        # Should not fire until sustained_count consecutive windows
+        for i in range(rule.sustained_count):
+            windows = [
+                _make_window(
+                    measurement="t_disk_usage",
+                    field_name="used_percent",
+                    mean=85.0,
+                )
+            ]
+            results = evaluator.evaluate(windows)
+            if i < rule.sustained_count - 1:
+                assert results[0].fired is False
+            else:
+                assert results[0].fired is True
+
+    def test_disk_usage_high_resets_on_drop(self):
+        from beacon.telemetry.triggers import DEFAULT_TRIGGERS
+
+        rule = next(r for r in DEFAULT_TRIGGERS if r.name == "disk_usage_high")
+        evaluator = TriggerEvaluator(rules=[rule])
+
+        # Fire twice then drop below threshold
+        for _ in range(rule.sustained_count - 1):
+            evaluator.evaluate([
+                _make_window(
+                    measurement="t_disk_usage",
+                    field_name="used_percent",
+                    mean=85.0,
+                )
+            ])
+        # Drop below threshold - should reset counter
+        evaluator.evaluate([
+            _make_window(
+                measurement="t_disk_usage",
+                field_name="used_percent",
+                mean=70.0,
+            )
+        ])
+
+        # Need sustained_count consecutive windows again to fire
+        for i in range(rule.sustained_count):
+            results = evaluator.evaluate([
+                _make_window(
+                    measurement="t_disk_usage",
+                    field_name="used_percent",
+                    mean=85.0,
+                )
+            ])
+            if i < rule.sustained_count - 1:
+                assert results[0].fired is False
+            else:
+                assert results[0].fired is True
