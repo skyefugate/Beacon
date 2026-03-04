@@ -104,7 +104,7 @@ class EscalationManager:
                 actions = self._transition(
                     EscalationState.ACTIVE,
                     "Critical trigger in BASELINE",
-                    [EscalationAction.ENABLE_TIER1, EscalationAction.ENABLE_BURST],
+                    [EscalationAction.ENABLE_TIER1, EscalationAction.ENABLE_BURST, EscalationAction.TRIGGER_PACK],
                 )
             elif has_warning:
                 actions = self._transition(
@@ -118,7 +118,7 @@ class EscalationManager:
                 actions = self._transition(
                     EscalationState.ACTIVE,
                     "Critical trigger in ELEVATED",
-                    [EscalationAction.ENABLE_BURST],
+                    [EscalationAction.ENABLE_BURST, EscalationAction.TRIGGER_PACK],
                 )
             elif not fired:
                 # No triggers — de-escalate
@@ -148,7 +148,7 @@ class EscalationManager:
                     actions = self._transition(
                         EscalationState.ACTIVE,
                         "Re-escalation from COOLDOWN (critical)",
-                        [EscalationAction.ENABLE_BURST],
+                        [EscalationAction.ENABLE_BURST, EscalationAction.TRIGGER_PACK],
                     )
                 else:
                     actions = self._transition(
