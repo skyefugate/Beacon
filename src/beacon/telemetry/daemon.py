@@ -14,6 +14,7 @@ from pathlib import Path
 
 from beacon.config import BeaconSettings, get_settings
 from beacon.telemetry.buffer import SQLiteBuffer
+from beacon.telemetry.export.base import BaseExporter
 from beacon.telemetry.export.file import FileExporter
 from beacon.telemetry.export.influx import InfluxExporter
 from beacon.telemetry.samplers.change import ChangeDetector
