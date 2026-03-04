@@ -14,6 +14,7 @@ from pathlib import Path
 import psutil
 
 from beacon.collectors.lan import LANCollector
+from beacon.collectors.wifi import _AIRPORT_PATH
 from beacon.models.envelope import Event, Metric, Severity
 from beacon.telemetry.sampler import BaseSampler
 
@@ -110,18 +111,40 @@ class ChangeDetector(BaseSampler):
         return None
 
     def _get_ssid(self) -> str | None:
-        """Get current SSID (macOS only for now)."""
+        """Get current SSID (macOS only for now).
+
+        Uses airport -I for fast detection (< 1s), falling back to
+        system_profiler SPAirPortDataType if airport is unavailable.
+        """
         system = platform.system()
         if system != "Darwin":
             return None
-        try:
-            import subprocess
 
+        import subprocess
+
+        # 1. Try airport -I first (fast, typically < 1s)
+        try:
+            result = subprocess.run(
+                [_AIRPORT_PATH, "-I"],
+                capture_output=True,
+                text=True,
+                timeout=5,
+            )
+            if result.returncode == 0:
+                for line in result.stdout.splitlines():
+                    m = re.match(r"\s+SSID:\s+(.+)", line)
+                    if m:
+                        return m.group(1).strip()
+        except (FileNotFoundError, OSError, subprocess.SubprocessError):
+            pass
+
+        # 2. Fallback: system_profiler SPAirPortDataType (slower, ~10s)
+        try:
             result = subprocess.run(
                 ["system_profiler", "SPAirPortDataType"],
                 capture_output=True,
                 text=True,
-                timeout=10,
+                timeout=15,
             )
             if result.returncode != 0:
                 return None
@@ -139,4 +162,6 @@ class ChangeDetector(BaseSampler):
                         break
         except (FileNotFoundError, subprocess.SubprocessError):
             pass
+
         return None
+
