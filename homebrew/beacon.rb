@@ -4,7 +4,7 @@ class Beacon < Formula
   desc "Network experience monitor — telemetry agent with BXI scoring"
   homepage "https://github.com/skyefugate/Beacon"
   url "https://github.com/skyefugate/Beacon/archive/refs/tags/v0.1.0.tar.gz"
-  sha256 "PLACEHOLDER"
+  sha256 "7bbd21fcf6ebcb96b35d4231cbb267c480902f21b9703376ad73855272062f95"
   license "MIT"
 
   depends_on "python@3.11"
