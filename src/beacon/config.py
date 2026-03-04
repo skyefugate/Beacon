@@ -129,6 +129,15 @@ class TelemetrySettings(BaseSettings):
     model_config = {"env_prefix": "BEACON_TELEMETRY_"}
 
 
+class EngineSettings(BaseSettings):
+    """Configuration for the fault domain engine."""
+
+    # WiFi roam chains (BSSID->DHCP->IP) can span 15-45 s; use 45 s as default.
+    correlator_window_seconds: float = 45.0
+
+    model_config = {"env_prefix": "BEACON_ENGINE_"}
+
+
 class BeaconSettings(BaseSettings):
     host: str = "0.0.0.0"
     port: int = 8000
@@ -140,6 +149,7 @@ class BeaconSettings(BaseSettings):
     collector: CollectorSettings = Field(default_factory=CollectorSettings)
     storage: StorageSettings = Field(default_factory=StorageSettings)
     telemetry: TelemetrySettings = Field(default_factory=TelemetrySettings)
+    engine: EngineSettings = Field(default_factory=EngineSettings)
 
     model_config = {"env_prefix": "BEACON_"}
 
@@ -157,6 +167,7 @@ class BeaconSettings(BaseSettings):
         collector_yaml = yaml_data.get("collector", {})
         storage_yaml = yaml_data.get("storage", {})
         telemetry_yaml = yaml_data.get("telemetry", {})
+        engine_yaml = yaml_data.get("engine", {})
 
         influx = InfluxDBSettings(
             **{
@@ -191,6 +202,15 @@ class BeaconSettings(BaseSettings):
             }
         )
 
+        engine = EngineSettings(
+            **{
+                k: v
+                for k, v in engine_yaml.items()
+                if k in EngineSettings.model_fields
+                and os.environ.get(f"BEACON_ENGINE_{k.upper()}") is None
+            }
+        )
+
         top_kwargs: dict[str, Any] = {}
         for key in ("host", "port", "log_level", "probe_id"):
             if key in beacon_block and os.environ.get(f"BEACON_{key.upper()}") is None:
@@ -202,6 +222,7 @@ class BeaconSettings(BaseSettings):
             collector=collector,
             storage=storage,
             telemetry=telemetry,
+            engine=engine,
             **top_kwargs,
         )
 

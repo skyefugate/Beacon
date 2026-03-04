@@ -130,7 +130,7 @@ class TestEventCorrelator:
             ],
         )
 
-        correlator = EventCorrelator(window_seconds=5.0)
+        correlator = EventCorrelator(window_seconds=45.0)
         correlations = correlator.correlate([envelope])
         assert len(correlations) >= 1
         assert len(correlations[0].correlated_metrics) >= 1
@@ -162,6 +162,35 @@ class TestEventCorrelator:
         if correlations:
             assert len(correlations[0].correlated_metrics) == 0
 
+
+
+    def test_correlates_events_30s_apart(self):
+        """Events 30 s apart must correlate with the new 45 s default window."""
+        now = _now()
+        envelope = _make_envelope(
+            "mixed",
+            metrics=[
+                Metric(
+                    measurement="wifi_link",
+                    fields={"rssi_dbm": -75},
+                    tags={"interface": "en0"},
+                    timestamp=now - timedelta(seconds=30),
+                ),
+            ],
+            events=[
+                Event(
+                    event_type="bssid_change",
+                    severity=Severity.WARNING,
+                    message="BSSID roam detected",
+                    timestamp=now,
+                ),
+            ],
+        )
+
+        correlator = EventCorrelator()  # uses default 45 s
+        correlations = correlator.correlate([envelope])
+        assert len(correlations) >= 1, "30 s gap should correlate within 45 s window"
+        assert len(correlations[0].correlated_metrics) >= 1
 
 class TestConfidenceScorer:
     def test_single_domain_scores_high(self):
