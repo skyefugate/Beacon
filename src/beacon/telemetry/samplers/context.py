@@ -83,7 +83,7 @@ class ContextSampler(BaseSampler):
                 metrics.append(
                     Metric(
                         measurement="t_network_geo",
-                        fields=geo_fields,
+                        fields=geo_fields,  # type: ignore[arg-type]
                         timestamp=now,
                     )
                 )

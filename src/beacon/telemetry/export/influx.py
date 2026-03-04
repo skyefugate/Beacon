@@ -116,8 +116,8 @@ class InfluxExporter(BaseExporter):
         """Convert a Beacon Metric to an InfluxDB Point."""
         point = Point(metric.measurement)
         for key, value in metric.tags.items():
-            point = point.tag(key, str(value))
+            point = point.tag(key, str(value))  # type: ignore[assignment]
         for key, value in metric.fields.items():
-            point = point.field(key, value)
-        point = point.time(metric.timestamp, WritePrecision.MS)
+            point = point.field(key, value)  # type: ignore[assignment]
+        point = point.time(metric.timestamp, WritePrecision.MS)  # type: ignore[assignment]
         return point
