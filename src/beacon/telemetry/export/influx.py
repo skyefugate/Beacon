@@ -112,12 +112,12 @@ class InfluxExporter(BaseExporter):
             self._client = None
 
     @staticmethod
-    def _metric_to_point(metric: Metric) -> Point:
+    def _metric_to_point(metric: Metric) -> Point:  # type: ignore[misc]
         """Convert a Beacon Metric to an InfluxDB Point."""
         point = Point(metric.measurement)
         for key, value in metric.tags.items():
-            point = point.tag(key, str(value))  # type: ignore[assignment]
+            point = point.tag(key, str(value))
         for key, value in metric.fields.items():
-            point = point.field(key, value)  # type: ignore[assignment]
-        point = point.time(metric.timestamp, WritePrecision.MS)  # type: ignore[assignment]
+            point = point.field(key, value)
+        point = point.time(metric.timestamp, WritePrecision.MS)
         return point

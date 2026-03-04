@@ -68,16 +68,16 @@ class InfluxStorage:
         self._client.close()
 
     @staticmethod
-    def _metric_to_point(metric: Metric, run_id: str | None = None) -> Point:
+    def _metric_to_point(metric: Metric, run_id: str | None = None) -> Point:  # type: ignore[misc]
         """Convert a Beacon Metric to an InfluxDB Point."""
         point = Point(metric.measurement)
         for key, value in metric.tags.items():
-            point = point.tag(key, str(value))  # type: ignore[assignment]
+            point = point.tag(key, str(value))
         if run_id:
-            point = point.tag("run_id", run_id)  # type: ignore[assignment]
+            point = point.tag("run_id", run_id)
         for key, value in metric.fields.items():
-            point = point.field(key, value)  # type: ignore[assignment]
-        point = point.time(metric.timestamp, WritePrecision.MS)  # type: ignore[assignment]
+            point = point.field(key, value)
+        point = point.time(metric.timestamp, WritePrecision.MS)
         return point
 
     def __enter__(self):
