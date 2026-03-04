@@ -5,7 +5,6 @@ Writes one JSON object per line. Rotates at max_mb, keeps max_files.
 
 from __future__ import annotations
 
-import json
 import logging
 from pathlib import Path
 

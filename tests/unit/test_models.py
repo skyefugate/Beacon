@@ -9,9 +9,9 @@ from uuid import uuid4
 import pytest
 
 from beacon.models.envelope import Artifact, Event, Metric, PluginEnvelope, Severity
-from beacon.models.fault import CompetingHypothesis, FaultDomain, FaultDomainResult
-from beacon.models.health import CPUHealth, DiskHealth, HealthSnapshot, MemoryHealth, ThermalHealth
-from beacon.models.evidence import EnvironmentSnapshot, EvidencePack, EventCorrelation
+from beacon.models.fault import FaultDomain, FaultDomainResult
+from beacon.models.health import CPUHealth, HealthSnapshot, MemoryHealth
+from beacon.models.evidence import EnvironmentSnapshot, EvidencePack
 
 
 class TestMetric:

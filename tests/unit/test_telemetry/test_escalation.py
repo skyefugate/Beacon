@@ -3,9 +3,7 @@
 from __future__ import annotations
 
 import time
-from unittest.mock import patch
 
-import pytest
 
 from beacon.models.envelope import Severity
 from beacon.telemetry.escalation import (
@@ -13,7 +11,7 @@ from beacon.telemetry.escalation import (
     EscalationManager,
     EscalationState,
 )
-from beacon.telemetry.triggers import TriggerResult, TriggerRule, TriggerType
+from beacon.telemetry.triggers import TriggerResult, TriggerRule
 
 
 def _make_result(fired: bool, severity: Severity = Severity.WARNING) -> TriggerResult:
@@ -94,7 +92,7 @@ class TestEscalationManager:
         mgr.process_triggers([_make_result(True, Severity.CRITICAL)])
         mgr.process_triggers([_make_result(False)])  # → COOLDOWN
 
-        actions = mgr.process_triggers([_make_result(True, Severity.CRITICAL)])
+        mgr.process_triggers([_make_result(True, Severity.CRITICAL)])
         assert mgr.state == EscalationState.ACTIVE
 
     def test_cooldown_re_escalate_on_warning(self):
@@ -102,7 +100,7 @@ class TestEscalationManager:
         mgr.process_triggers([_make_result(True, Severity.CRITICAL)])
         mgr.process_triggers([_make_result(False)])  # → COOLDOWN
 
-        actions = mgr.process_triggers([_make_result(True, Severity.WARNING)])
+        mgr.process_triggers([_make_result(True, Severity.WARNING)])
         assert mgr.state == EscalationState.ELEVATED
 
     def test_flap_guard_suppresses_burst(self):

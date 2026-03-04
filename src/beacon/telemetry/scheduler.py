@@ -187,7 +187,6 @@ class TelemetryScheduler:
 
     async def _export_windows(self, windows: list[Any]) -> None:
         """Convert aggregated windows to Metrics and export them."""
-        from datetime import datetime, timezone
         agg_metrics = []
         for w in windows:
             agg_metrics.append(Metric(
