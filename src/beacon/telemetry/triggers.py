@@ -160,6 +160,17 @@ DEFAULT_TRIGGERS: list[TriggerRule] = [
         severity=Severity.WARNING,
         message_template="Load average (1m) mean={actual:.2f} exceeds 4.0",
     ),
+    TriggerRule(
+        name="wifi_rssi_drop",
+        measurement="t_wifi_link",
+        field_name="rssi_dbm",
+        stat="mean",
+        trigger_type=TriggerType.DELTA,
+        operator="<",
+        value=-10.0,
+        severity=Severity.WARNING,
+        message_template="Wi-Fi RSSI sudden drop: delta={actual:.1f} dBm",
+    ),
 ]
 
 
@@ -204,6 +215,16 @@ class TriggerEvaluator:
                             fired = False  # Not enough consecutive windows yet
                     else:
                         self._sustained_counts[key] = 0
+
+                elif rule.trigger_type == TriggerType.DELTA:
+                    key = f"{rule.name}:{window.measurement}:{frozenset(window.tags.items())}"
+                    prev = self._previous_values.get(key)
+                    self._previous_values[key] = actual
+                    if prev is None:
+                        fired = False  # no baseline yet — first window, cannot compute delta
+                    else:
+                        delta = actual - prev
+                        fired = self._check_trigger(rule, delta)
 
                 event = None
                 if fired:
