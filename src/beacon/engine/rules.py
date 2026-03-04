@@ -101,25 +101,23 @@ class HeuristicRuleSet:
         tags = metric.tags
 
         # Device signals
-        if m == "device_cpu" and isinstance(f.get("percent"), (int, float)) and f["percent"] > 90:
+        percent = f.get("percent")
+        if m == "device_cpu" and isinstance(percent, (int, float)) and percent > 90:
             matches.append(
                 SignalMatch(
                     signal=self._signal_map["high_cpu"],
-                    evidence_ref=f"metric:device_cpu:percent={f['percent']}",
-                    value=f["percent"],
+                    evidence_ref=f"metric:device_cpu:percent={percent}",
+                    value=percent,
                 )
             )
 
-        if (
-            m == "device_memory"
-            and isinstance(f.get("percent_used"), (int, float))
-            and f["percent_used"] > 90
-        ):
+        percent_used = f.get("percent_used")
+        if m == "device_memory" and isinstance(percent_used, (int, float)) and percent_used > 90:
             matches.append(
                 SignalMatch(
                     signal=self._signal_map["high_memory"],
-                    evidence_ref=f"metric:device_memory:percent_used={f['percent_used']}",
-                    value=f["percent_used"],
+                    evidence_ref=f"metric:device_memory:percent_used={percent_used}",
+                    value=percent_used,
                 )
             )
 
