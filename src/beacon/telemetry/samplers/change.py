@@ -164,4 +164,3 @@ class ChangeDetector(BaseSampler):
             pass
 
         return None
-

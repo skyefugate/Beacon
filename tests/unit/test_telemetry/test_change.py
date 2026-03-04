@@ -121,15 +121,19 @@ class TestChangeDetector:
         "Airport -I is tried before system_profiler for SSID."
         from unittest.mock import MagicMock, patch
         from beacon.collectors.wifi import _AIRPORT_PATH
+
         detector = ChangeDetector()
-        airport_output = chr(32)*5 + "SSID: MyHomeNetwork" + chr(10)
+        airport_output = chr(32) * 5 + "SSID: MyHomeNetwork" + chr(10)
         mock_result = MagicMock()
         mock_result.returncode = 0
         mock_result.stdout = airport_output
-        with patch(
-            "beacon.telemetry.samplers.change.platform.system",
-            return_value="Darwin",
-        ), patch("subprocess.run", return_value=mock_result) as mock_run:
+        with (
+            patch(
+                "beacon.telemetry.samplers.change.platform.system",
+                return_value="Darwin",
+            ),
+            patch("subprocess.run", return_value=mock_result) as mock_run,
+        ):
             result = detector._get_ssid()
             assert result == "MyHomeNetwork"
             first_call = mock_run.call_args_list[0][0][0]
@@ -139,6 +143,7 @@ class TestChangeDetector:
     def test_get_ssid_falls_back_to_system_profiler(self):
         "system_profiler is used as fallback when airport binary is absent."
         from unittest.mock import MagicMock, patch
+
         detector = ChangeDetector()
         sp_line_current = "          Current Network Information:" + chr(10)
         sp_line_ssid = "              MyFallbackSSID:" + chr(10)
@@ -153,16 +158,20 @@ class TestChangeDetector:
             mock.stdout = sp_output
             return mock
 
-        with patch(
-            "beacon.telemetry.samplers.change.platform.system",
-            return_value="Darwin",
-        ), patch("subprocess.run", side_effect=fake_run):
+        with (
+            patch(
+                "beacon.telemetry.samplers.change.platform.system",
+                return_value="Darwin",
+            ),
+            patch("subprocess.run", side_effect=fake_run),
+        ):
             result = detector._get_ssid()
             assert result == "MyFallbackSSID"
 
     def test_get_ssid_returns_none_on_linux(self):
         "SSID detection is macOS-only; Linux returns None."
         from unittest.mock import patch
+
         detector = ChangeDetector()
         with patch(
             "beacon.telemetry.samplers.change.platform.system",
@@ -173,6 +182,7 @@ class TestChangeDetector:
     def test_get_ssid_returns_none_when_airport_has_no_ssid(self):
         "When airport output has no SSID line, return None."
         from unittest.mock import MagicMock, patch
+
         detector = ChangeDetector()
         airport_output = "     AirPort: Off" + chr(10)
 
@@ -186,9 +196,12 @@ class TestChangeDetector:
                 mock.stdout = ""
             return mock
 
-        with patch(
-            "beacon.telemetry.samplers.change.platform.system",
-            return_value="Darwin",
-        ), patch("subprocess.run", side_effect=fake_run):
+        with (
+            patch(
+                "beacon.telemetry.samplers.change.platform.system",
+                return_value="Darwin",
+            ),
+            patch("subprocess.run", side_effect=fake_run),
+        ):
             result = detector._get_ssid()
             assert result is None
