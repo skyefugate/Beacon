@@ -204,3 +204,67 @@ class TestTriggerEvaluator:
         evaluator = TriggerEvaluator()
         results = evaluator.evaluate([])
         assert results == []
+
+
+class TestNewDefaultTriggers:
+    """Tests for memory, SNR, noise floor, and load average triggers."""
+
+    def test_high_memory_fires(self):
+        from beacon.telemetry.triggers import DEFAULT_TRIGGERS
+
+        rule = next(r for r in DEFAULT_TRIGGERS if r.name == "high_memory")
+        evaluator = TriggerEvaluator(rules=[rule])
+        windows = [
+            _make_window(
+                measurement="t_device_health",
+                field_name="memory_percent",
+                mean=90.0,
+            )
+        ]
+        results = evaluator.evaluate(windows)
+        assert results[0].fired is True
+
+    def test_low_snr_fires(self):
+        from beacon.telemetry.triggers import DEFAULT_TRIGGERS
+
+        rule = next(r for r in DEFAULT_TRIGGERS if r.name == "low_snr")
+        evaluator = TriggerEvaluator(rules=[rule])
+        windows = [
+            _make_window(
+                measurement="t_wifi_link",
+                field_name="snr_db",
+                mean=10.0,
+            )
+        ]
+        results = evaluator.evaluate(windows)
+        assert results[0].fired is True
+
+    def test_high_noise_floor_fires(self):
+        from beacon.telemetry.triggers import DEFAULT_TRIGGERS
+
+        rule = next(r for r in DEFAULT_TRIGGERS if r.name == "high_noise_floor")
+        evaluator = TriggerEvaluator(rules=[rule])
+        windows = [
+            _make_window(
+                measurement="t_wifi_link",
+                field_name="noise_dbm",
+                mean=-80.0,
+            )
+        ]
+        results = evaluator.evaluate(windows)
+        assert results[0].fired is True
+
+    def test_high_load_avg_fires(self):
+        from beacon.telemetry.triggers import DEFAULT_TRIGGERS
+
+        rule = next(r for r in DEFAULT_TRIGGERS if r.name == "high_load_avg_1m")
+        evaluator = TriggerEvaluator(rules=[rule])
+        windows = [
+            _make_window(
+                measurement="t_device_health",
+                field_name="load_avg_1m",
+                mean=5.0,
+            )
+        ]
+        results = evaluator.evaluate(windows)
+        assert results[0].fired is True
