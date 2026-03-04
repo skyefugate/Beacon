@@ -428,31 +428,37 @@ class TestDiskTriggers:
 
         # Fire twice then drop below threshold
         for _ in range(rule.sustained_count - 1):
-            evaluator.evaluate([
+            evaluator.evaluate(
+                [
+                    _make_window(
+                        measurement="t_disk_usage",
+                        field_name="used_percent",
+                        mean=85.0,
+                    )
+                ]
+            )
+        # Drop below threshold - should reset counter
+        evaluator.evaluate(
+            [
                 _make_window(
                     measurement="t_disk_usage",
                     field_name="used_percent",
-                    mean=85.0,
+                    mean=70.0,
                 )
-            ])
-        # Drop below threshold - should reset counter
-        evaluator.evaluate([
-            _make_window(
-                measurement="t_disk_usage",
-                field_name="used_percent",
-                mean=70.0,
-            )
-        ])
+            ]
+        )
 
         # Need sustained_count consecutive windows again to fire
         for i in range(rule.sustained_count):
-            results = evaluator.evaluate([
-                _make_window(
-                    measurement="t_disk_usage",
-                    field_name="used_percent",
-                    mean=85.0,
-                )
-            ])
+            results = evaluator.evaluate(
+                [
+                    _make_window(
+                        measurement="t_disk_usage",
+                        field_name="used_percent",
+                        mean=85.0,
+                    )
+                ]
+            )
             if i < rule.sustained_count - 1:
                 assert results[0].fired is False
             else:
