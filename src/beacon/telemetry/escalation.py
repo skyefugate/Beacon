@@ -104,7 +104,11 @@ class EscalationManager:
                 actions = self._transition(
                     EscalationState.ACTIVE,
                     "Critical trigger in BASELINE",
-                    [EscalationAction.ENABLE_TIER1, EscalationAction.ENABLE_BURST, EscalationAction.TRIGGER_PACK],
+                    [
+                        EscalationAction.ENABLE_TIER1,
+                        EscalationAction.ENABLE_BURST,
+                        EscalationAction.TRIGGER_PACK,
+                    ],
                 )
             elif has_warning:
                 actions = self._transition(
