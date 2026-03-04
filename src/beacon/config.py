@@ -90,6 +90,8 @@ class TelemetrySettings(BaseSettings):
     context_geo_ttl: int = 900
     context_geo_enabled: bool = True
 
+    tier0_dhcp_interval: int = 60
+
     # Change detection
     change_detection_interval: int = 10
 

@@ -24,6 +24,7 @@ from beacon.telemetry.samplers.dns import DNSSampler
 from beacon.telemetry.samplers.http import HTTPSampler
 from beacon.telemetry.samplers.ping import PingSampler
 from beacon.telemetry.samplers.wifi import WiFiSampler
+from beacon.telemetry.samplers.dhcp import DhcpSampler
 from beacon.telemetry.scheduler import TelemetryScheduler
 
 logger = logging.getLogger(__name__)
@@ -74,6 +75,7 @@ def _build_scheduler(settings: BeaconSettings) -> TelemetryScheduler:
     # Tier 0 samplers
     samplers = [
         WiFiSampler(),
+        DhcpSampler(),
         PingSampler(
             targets=ts.ping_targets,
             ping_gateway=ts.ping_gateway,
