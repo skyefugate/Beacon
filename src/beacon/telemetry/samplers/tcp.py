@@ -61,7 +61,9 @@ class TcpSampler(BaseSampler):
 
         return [Metric(measurement="t_tcp_stats", fields=fields, timestamp=now)]
 
-    def _compute_deltas(self, current: dict[str, int]) -> dict[str, float] | None:
+    def _compute_deltas(
+        self, current: dict[str, int]
+    ) -> dict[str, float | int | str | bool] | None:
         if self._prev is None:
             return None
 

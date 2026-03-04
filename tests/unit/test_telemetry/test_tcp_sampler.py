@@ -11,9 +11,9 @@ from beacon.telemetry.samplers.tcp import TcpSampler
 
 # Fixture data ----------------------------------------------------------------
 
-NETSTAT_MACOS_SAMPLE = 'tcp:\n    12345 packets sent\n        9876 data packets (12345678 bytes)\n        2345 data packets (4567890 bytes) retransmitted\n        0 resends initiated by MTU discovery\n    23456 packets received\n    123 bad connection attempts\n    45 connections reset\n    567 connection requests\n    234 connection accepts\n'
+NETSTAT_MACOS_SAMPLE = "tcp:\n    12345 packets sent\n        9876 data packets (12345678 bytes)\n        2345 data packets (4567890 bytes) retransmitted\n        0 resends initiated by MTU discovery\n    23456 packets received\n    123 bad connection attempts\n    45 connections reset\n    567 connection requests\n    234 connection accepts\n"
 
-PROC_NET_SNMP_SAMPLE = 'Ip: Forwarding DefaultTTL InReceives InHdrErrors\nIp: 2 64 1234567 0\nIcmp: InMsgs InErrors InCsumErrors InDestUnreachs\nIcmp: 1 0 0 1\nTcp: RtoAlgorithm RtoMin RtoMax MaxConn ActiveOpens PassiveOpens AttemptFails EstabResets CurrEstab InSegs OutSegs RetransSegs InErrs OutRsts InCsumErrors\nTcp: 1 200 120000 -1 5678 1234 56 789 12 9876543 9765432 345 0 678 0\nUdp: InDatagrams NoPorts InErrors OutDatagrams\nUdp: 123456 0 0 123456\n'
+PROC_NET_SNMP_SAMPLE = "Ip: Forwarding DefaultTTL InReceives InHdrErrors\nIp: 2 64 1234567 0\nIcmp: InMsgs InErrors InCsumErrors InDestUnreachs\nIcmp: 1 0 0 1\nTcp: RtoAlgorithm RtoMin RtoMax MaxConn ActiveOpens PassiveOpens AttemptFails EstabResets CurrEstab InSegs OutSegs RetransSegs InErrs OutRsts InCsumErrors\nTcp: 1 200 120000 -1 5678 1234 56 789 12 9876543 9765432 345 0 678 0\nUdp: InDatagrams NoPorts InErrors OutDatagrams\nUdp: 123456 0 0 123456\n"
 
 
 class TestParseMacOS:
@@ -85,17 +85,33 @@ class TestParseProcNetSnmp:
 class TestComputeDeltas:
     def test_first_sample_returns_none(self):
         sampler = TcpSampler()
-        result = sampler._compute_deltas({
-            "retransmits": 100, "connection_failures": 5,
-            "resets": 10, "active_opens": 50, "passive_opens": 20})
+        result = sampler._compute_deltas(
+            {
+                "retransmits": 100,
+                "connection_failures": 5,
+                "resets": 10,
+                "active_opens": 50,
+                "passive_opens": 20,
+            }
+        )
         assert result is None
 
     def test_second_sample_returns_rates(self):
         sampler = TcpSampler()
-        prev = {"retransmits": 100, "connection_failures": 5,
-                "resets": 10, "active_opens": 50, "passive_opens": 20}
-        curr = {"retransmits": 130, "connection_failures": 8,
-                "resets": 12, "active_opens": 55, "passive_opens": 25}
+        prev = {
+            "retransmits": 100,
+            "connection_failures": 5,
+            "resets": 10,
+            "active_opens": 50,
+            "passive_opens": 20,
+        }
+        curr = {
+            "retransmits": 130,
+            "connection_failures": 8,
+            "resets": 12,
+            "active_opens": 55,
+            "passive_opens": 25,
+        }
         sampler._prev = prev
         result = sampler._compute_deltas(curr)
         assert result is not None
@@ -107,18 +123,33 @@ class TestComputeDeltas:
 
     def test_counter_reset_clamped_to_zero(self):
         sampler = TcpSampler()
-        sampler._prev = {"retransmits": 1000, "connection_failures": 0,
-                         "resets": 0, "active_opens": 0, "passive_opens": 0}
-        curr = {"retransmits": 5, "connection_failures": 0,
-                "resets": 0, "active_opens": 0, "passive_opens": 0}
+        sampler._prev = {
+            "retransmits": 1000,
+            "connection_failures": 0,
+            "resets": 0,
+            "active_opens": 0,
+            "passive_opens": 0,
+        }
+        curr = {
+            "retransmits": 5,
+            "connection_failures": 0,
+            "resets": 0,
+            "active_opens": 0,
+            "passive_opens": 0,
+        }
         result = sampler._compute_deltas(curr)
         assert result is not None
         assert result["retransmits_per_sec"] == 0.0
 
     def test_zero_delta_all_zeros(self):
         sampler = TcpSampler()
-        counters = {"retransmits": 100, "connection_failures": 5,
-                    "resets": 10, "active_opens": 50, "passive_opens": 20}
+        counters = {
+            "retransmits": 100,
+            "connection_failures": 5,
+            "resets": 10,
+            "active_opens": 50,
+            "passive_opens": 20,
+        }
         sampler._prev = counters.copy()
         result = sampler._compute_deltas(counters.copy())
         assert result is not None
@@ -136,8 +167,11 @@ class TestTcpSamplerSample:
     async def test_first_sample_returns_empty(self, mock_to_thread, mock_system):
         mock_system.return_value = "Darwin"
         mock_to_thread.return_value = {
-            "retransmits": 100, "connection_failures": 5,
-            "resets": 10, "active_opens": 50, "passive_opens": 20
+            "retransmits": 100,
+            "connection_failures": 5,
+            "resets": 10,
+            "active_opens": 50,
+            "passive_opens": 20,
         }
         sampler = TcpSampler()
         metrics = await sampler.sample()
@@ -150,11 +184,19 @@ class TestTcpSamplerSample:
     async def test_second_sample_returns_metrics(self, mock_to_thread, mock_system):
         mock_system.return_value = "Darwin"
         sampler = TcpSampler()
-        sampler._prev = {"retransmits": 100, "connection_failures": 5,
-                         "resets": 10, "active_opens": 50, "passive_opens": 20}
+        sampler._prev = {
+            "retransmits": 100,
+            "connection_failures": 5,
+            "resets": 10,
+            "active_opens": 50,
+            "passive_opens": 20,
+        }
         mock_to_thread.return_value = {
-            "retransmits": 160, "connection_failures": 8,
-            "resets": 13, "active_opens": 55, "passive_opens": 23
+            "retransmits": 160,
+            "connection_failures": 8,
+            "resets": 13,
+            "active_opens": 55,
+            "passive_opens": 23,
         }
         metrics = await sampler.sample()
         assert len(metrics) == 1
@@ -175,8 +217,13 @@ class TestTcpSamplerSample:
         mock_system.return_value = "Darwin"
         mock_to_thread.return_value = None
         sampler = TcpSampler()
-        sampler._prev = {"retransmits": 100, "connection_failures": 0,
-                         "resets": 0, "active_opens": 0, "passive_opens": 0}
+        sampler._prev = {
+            "retransmits": 100,
+            "connection_failures": 0,
+            "resets": 0,
+            "active_opens": 0,
+            "passive_opens": 0,
+        }
         metrics = await sampler.sample()
         assert metrics == []
 
