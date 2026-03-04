@@ -28,6 +28,11 @@ ALLOWED_MEASUREMENTS = {
     "t_dns_latency_agg",
     "t_http_timing_agg",
     "t_device_health_agg",
+    "t_wifi_link_agg",
+    "t_gateway_rtt_agg",
+    "t_disk_io_agg",
+    "t_disk_usage_agg",
+    "t_change_event_agg",
 }
 
 ALLOWED_FIELDS: dict[str, set[str]] = {
@@ -71,6 +76,36 @@ ALLOWED_FIELDS: dict[str, set[str]] = {
         "memory_percent_max",
         "disk_percent_mean",
     },
+    "t_wifi_link_agg": {
+        "rssi_dbm_mean", "rssi_dbm_p50", "rssi_dbm_p95", "rssi_dbm_min", "rssi_dbm_max",
+        "noise_dbm_mean", "noise_dbm_min", "noise_dbm_max",
+        "snr_db_mean", "snr_db_p50", "snr_db_p95", "snr_db_min", "snr_db_max",
+        "tx_rate_mbps_mean", "tx_rate_mbps_p50", "tx_rate_mbps_p95",
+        "tx_rate_mbps_min", "tx_rate_mbps_max",
+    },
+    "t_gateway_rtt_agg": {
+        "rtt_avg_ms_mean", "rtt_avg_ms_p50", "rtt_avg_ms_p95", "rtt_avg_ms_p99",
+        "rtt_avg_ms_min", "rtt_avg_ms_max", "rtt_avg_ms_jitter",
+        "loss_pct_mean", "loss_pct_max",
+    },
+    "t_disk_io_agg": {
+        "read_iops_mean", "read_iops_p50", "read_iops_p95", "read_iops_max",
+        "write_iops_mean", "write_iops_p50", "write_iops_p95", "write_iops_max",
+        "read_mbps_mean", "read_mbps_p50", "read_mbps_p95", "read_mbps_max",
+        "write_mbps_mean", "write_mbps_p50", "write_mbps_p95", "write_mbps_max",
+        "avg_latency_ms_mean", "avg_latency_ms_p50", "avg_latency_ms_p95",
+        "avg_latency_ms_min", "avg_latency_ms_max",
+    },
+    "t_disk_usage_agg": {
+        "used_percent_mean", "used_percent_min", "used_percent_max",
+        "used_gb_mean", "used_gb_min", "used_gb_max",
+        "free_gb_mean", "free_gb_min", "free_gb_max",
+        "total_gb_mean",
+    },
+    "t_change_event_agg": {
+        "changes_detected_mean", "changes_detected_p50", "changes_detected_p95",
+        "changes_detected_min", "changes_detected_max", "changes_detected_count",
+    },
 }
 
 ALLOWED_RANGES = {"5m", "15m", "1h", "6h", "24h", "7d"}
@@ -81,6 +116,11 @@ MEASUREMENT_ALIASES = {
     "dns_latency": "t_dns_latency_agg",
     "http_timing": "t_http_timing_agg",
     "device_health": "t_device_health_agg",
+    "wifi_link": "t_wifi_link_agg",
+    "gateway_rtt": "t_gateway_rtt_agg",
+    "disk_io": "t_disk_io_agg",
+    "disk_usage": "t_disk_usage_agg",
+    "change_event": "t_change_event_agg",
 }
 
 # Process start time for uptime calculation
