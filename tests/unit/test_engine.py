@@ -106,6 +106,110 @@ class TestHeuristicRuleSet:
         assert any(m.signal.name == "gateway_unreachable" for m in matches)
 
 
+
+    def test_matches_high_disk_latency(self):
+        envelope = _make_envelope(
+            "disk",
+            metrics=[
+                Metric(
+                    measurement="t_disk_io",
+                    fields={"latency_ms": 350.0, "util_pct": 40.0},
+                    tags={"device": "disk0"},
+                    timestamp=_now(),
+                ),
+            ],
+        )
+        rules = HeuristicRuleSet()
+        matches = rules.evaluate([envelope])
+        assert any(m.signal.name == "high_disk_latency" for m in matches)
+        assert not any(m.signal.name == "high_disk_io" for m in matches)
+
+    def test_matches_disk_full(self):
+        envelope = _make_envelope(
+            "disk",
+            metrics=[
+                Metric(
+                    measurement="t_disk_usage",
+                    fields={"used_pct": 97.5},
+                    tags={"mount": "/"},
+                    timestamp=_now(),
+                ),
+            ],
+        )
+        rules = HeuristicRuleSet()
+        matches = rules.evaluate([envelope])
+        assert any(m.signal.name == "disk_full" for m in matches)
+        match = next(m for m in matches if m.signal.name == "disk_full")
+        assert match.value == 97.5
+        assert match.signal.domain == FaultDomain.DEVICE
+
+    def test_matches_high_disk_io(self):
+        envelope = _make_envelope(
+            "disk",
+            metrics=[
+                Metric(
+                    measurement="t_disk_io",
+                    fields={"latency_ms": 50.0, "util_pct": 95.0},
+                    tags={"device": "disk0"},
+                    timestamp=_now(),
+                ),
+            ],
+        )
+        rules = HeuristicRuleSet()
+        matches = rules.evaluate([envelope])
+        assert any(m.signal.name == "high_disk_io" for m in matches)
+
+    def test_no_disk_signal_for_normal_disk(self):
+        envelope = _make_envelope(
+            "disk",
+            metrics=[
+                Metric(
+                    measurement="t_disk_io",
+                    fields={"latency_ms": 10.0, "util_pct": 30.0},
+                    tags={"device": "disk0"},
+                    timestamp=_now(),
+                ),
+                Metric(
+                    measurement="t_disk_usage",
+                    fields={"used_pct": 60.0},
+                    tags={"mount": "/"},
+                    timestamp=_now(),
+                ),
+            ],
+        )
+        rules = HeuristicRuleSet()
+        matches = rules.evaluate([envelope])
+        disk_matches = [m for m in matches if m.signal.name in ("high_disk_latency", "disk_full", "high_disk_io")]
+        assert len(disk_matches) == 0
+
+    def test_disk_signals_contribute_to_device_domain(self):
+        """Disk signals should push the fault domain engine toward DEVICE."""
+        from beacon.engine.fault_domain import FaultDomainEngine
+        now = _now()
+        envelopes = [
+            _make_envelope(
+                "disk",
+                metrics=[
+                    Metric(
+                        measurement="t_disk_io",
+                        fields={"latency_ms": 500.0, "util_pct": 98.0},
+                        tags={"device": "disk0"},
+                        timestamp=now,
+                    ),
+                    Metric(
+                        measurement="t_disk_usage",
+                        fields={"used_pct": 99.0},
+                        tags={"mount": "/"},
+                        timestamp=now,
+                    ),
+                ],
+            ),
+        ]
+        engine = FaultDomainEngine()
+        result, _ = engine.analyze(envelopes)
+        assert result.fault_domain == FaultDomain.DEVICE
+        assert result.confidence > 0.0
+
 class TestEventCorrelator:
     def test_correlates_nearby_events_and_metrics(self):
         now = _now()
