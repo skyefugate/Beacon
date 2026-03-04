@@ -160,6 +160,17 @@ DEFAULT_TRIGGERS: list[TriggerRule] = [
         severity=Severity.WARNING,
         message_template="Load average (1m) mean={actual:.2f} exceeds 4.0",
     ),
+    TriggerRule(
+        name="wifi_rssi_drop",
+        measurement="t_wifi_link",
+        field_name="rssi_dbm",
+        stat="mean",
+        trigger_type=TriggerType.DELTA,
+        operator="<",
+        value=-10.0,
+        severity=Severity.WARNING,
+        message_template="Wi-Fi RSSI sudden drop: delta={actual:.1f} dBm",
+    ),
 ]
 
 
@@ -199,11 +210,23 @@ class TriggerEvaluator:
                 if rule.trigger_type == TriggerType.SUSTAINED:
                     key = f"{rule.name}:{window.measurement}:{frozenset(window.tags.items())}"
                     if fired:
-                        self._sustained_counts[key] = self._sustained_counts.get(key, 0) + 1
+                        self._sustained_counts[key] = (
+                            self._sustained_counts.get(key, 0) + 1
+                        )
                         if self._sustained_counts[key] < rule.sustained_count:
                             fired = False  # Not enough consecutive windows yet
                     else:
                         self._sustained_counts[key] = 0
+
+                elif rule.trigger_type == TriggerType.DELTA:
+                    key = f"{rule.name}:{window.measurement}:{frozenset(window.tags.items())}"
+                    prev = self._previous_values.get(key)
+                    self._previous_values[key] = actual
+                    if prev is None:
+                        fired = False  # no baseline yet — first window, cannot compute delta
+                    else:
+                        delta = actual - prev
+                        fired = self._check_trigger(rule, delta)
 
                 event = None
                 if fired:
@@ -226,21 +249,14 @@ class TriggerEvaluator:
                         timestamp=window.window_end,
                     )
 
-                results.append(
-                    TriggerResult(
-                        rule=rule,
-                        actual=actual,
-                        fired=fired,
-                        event=event,
-                    )
-                )
+                results.append(TriggerResult(
+                    rule=rule, actual=actual, fired=fired, event=event,
+                ))
 
         return results
 
     def _find_matching_windows(
-        self,
-        rule: TriggerRule,
-        windows: list[AggregatedWindow],
+        self, rule: TriggerRule, windows: list[AggregatedWindow],
     ) -> list[AggregatedWindow]:
         """Find windows that match a rule's measurement and tags filter."""
         matching = []
