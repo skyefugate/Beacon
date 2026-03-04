@@ -53,6 +53,9 @@ class InfluxExporter(BaseExporter):
         if not self._client:
             await self.start()
 
+        if not self._client:
+            return 0
+
         points = [self._metric_to_point(m) for m in metrics]
         try:
             write_api = self._client.write_api()
@@ -71,6 +74,9 @@ class InfluxExporter(BaseExporter):
         """Read unexported points from buffer, write to InfluxDB, mark exported."""
         if not self._client:
             await self.start()
+
+        if not self._client:
+            return 0
 
         batch = await self._buffer.read_unexported(self._batch_size)
         if not batch:
@@ -110,7 +116,7 @@ class InfluxExporter(BaseExporter):
         """Convert a Beacon Metric to an InfluxDB Point."""
         point = Point(metric.measurement)
         for key, value in metric.tags.items():
-            point = point.tag(key, value)
+            point = point.tag(key, str(value))
         for key, value in metric.fields.items():
             point = point.field(key, value)
         point = point.time(metric.timestamp, WritePrecision.MS)
