@@ -254,7 +254,7 @@ from(bucket: "{bucket}")
         t = r.get("_time")
         points.append(
             {
-                "time": t.isoformat() if hasattr(t, "isoformat") else str(t),
+                "time": t.isoformat() if t and hasattr(t, "isoformat") else str(t),
                 "value": r.get("_value"),
             }
         )
@@ -324,7 +324,7 @@ from(bucket: "{bucket}")
                 t = r.get("_time")
                 points.append(
                     {
-                        "time": t.isoformat() if hasattr(t, "isoformat") else str(t),
+                        "time": t.isoformat() if t and hasattr(t, "isoformat") else str(t),
                         "value": r.get("_value"),
                     }
                 )

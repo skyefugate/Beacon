@@ -100,7 +100,7 @@ def _build_scheduler(settings: BeaconSettings) -> TelemetryScheduler:
         retention_days=ts.buffer_retention_days,
     )
 
-    exporters = []
+    exporters: list[BaseExporter] = []
     if ts.export_influx_enabled:
         exporters.append(InfluxExporter(settings, buffer))
     if ts.export_file_enabled:

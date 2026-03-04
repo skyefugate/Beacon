@@ -72,7 +72,7 @@ class InfluxStorage:
         """Convert a Beacon Metric to an InfluxDB Point."""
         point = Point(metric.measurement)
         for key, value in metric.tags.items():
-            point = point.tag(key, value)
+            point = point.tag(key, str(value))
         if run_id:
             point = point.tag("run_id", run_id)
         for key, value in metric.fields.items():
