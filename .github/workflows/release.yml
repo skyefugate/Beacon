@@ -18,7 +18,11 @@ jobs:
 
       - name: Create release notes
         run: |
-          awk '/^## / {if (p) exit; p=1} p' CHANGELOG.md > release-notes.md
+          if [ -f CHANGELOG.md ]; then
+            awk '/^## / {if (p) exit; p=1} p' CHANGELOG.md > release-notes.md
+          else
+            echo "Release ${GITHUB_REF#refs/tags/}" > release-notes.md
+          fi
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
