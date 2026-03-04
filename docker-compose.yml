@@ -1,5 +1,6 @@
 services:
   beacon-core:
+    image: ghcr.io/skyefugate/beacon-core:latest
     build:
       context: .
       dockerfile: docker/Dockerfile.core
@@ -31,6 +32,7 @@ services:
     restart: unless-stopped
 
   beacon-collector:
+    image: ghcr.io/skyefugate/beacon-collector:latest
     build:
       context: .
       dockerfile: docker/Dockerfile.collector
