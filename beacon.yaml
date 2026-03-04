@@ -1,0 +1,63 @@
+# Beacon default configuration
+beacon:
+  host: "0.0.0.0"
+  port: 8000
+  log_level: "info"
+  probe_id: "beacon-01"
+
+influxdb:
+  url: "http://localhost:8086"
+  token: "beacon-dev-token"
+  org: "beacon"
+  bucket: "beacon"
+
+collector:
+  url: "http://localhost:9100"
+  timeout_seconds: 30
+
+storage:
+  data_dir: "./data"
+  artifact_dir: "./data/artifacts"
+  evidence_dir: "./data/evidence"
+
+telemetry:
+  enabled: true
+  window_seconds: 60
+  buffer_path: "./data/telemetry.db"
+  buffer_max_mb: 100
+  buffer_retention_days: 7
+  tier0_wifi_interval: 10
+  tier0_ping_interval: 10
+  tier0_dns_interval: 30
+  tier0_http_interval: 30
+  tier0_device_interval: 15
+  change_detection_interval: 10
+  export_influx_enabled: true
+  export_influx_bucket: "beacon_telemetry"
+  export_batch_size: 500
+  export_flush_interval: 10
+  export_file_enabled: false
+  export_file_path: "./data/telemetry.jsonl"
+
+defaults:
+  ping:
+    count: 10
+    interval: 0.5
+    targets:
+      - "8.8.8.8"
+      - "1.1.1.1"
+  dns:
+    resolvers:
+      - "8.8.8.8"
+      - "1.1.1.1"
+      - "9.9.9.9"
+    domains:
+      - "google.com"
+      - "cloudflare.com"
+  http:
+    targets:
+      - "https://www.google.com"
+      - "https://www.cloudflare.com"
+  throughput:
+    enabled: false
+    server: null

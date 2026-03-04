@@ -1,0 +1,27 @@
+[Unit]
+Description=Beacon Telemetry Daemon
+After=network-online.target influxdb.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/beacon telemetry start
+ExecStop=/usr/local/bin/beacon telemetry stop
+Restart=on-failure
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=beacon-telemetry
+
+# Resource limits
+CPUQuota=10%
+MemoryMax=256M
+
+# Security hardening
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=/var/lib/beacon /tmp
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,80 @@
+services:
+  beacon-core:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.core
+    ports:
+      - "8000:8000"
+    environment:
+      - BEACON_HOST=0.0.0.0
+      - BEACON_PORT=8000
+      - INFLUXDB_URL=http://influxdb:8086
+      - INFLUXDB_TOKEN=beacon-dev-token
+      - INFLUXDB_ORG=beacon
+      - INFLUXDB_BUCKET=beacon
+      - COLLECTOR_URL=http://beacon-collector:9100
+      - BEACON_DATA_DIR=/data
+      - BEACON_ARTIFACT_DIR=/data/artifacts
+      - BEACON_EVIDENCE_DIR=/data/evidence
+    volumes:
+      - beacon-data:/data
+    networks:
+      - beacon-net
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp
+    depends_on:
+      influxdb:
+        condition: service_healthy
+    restart: unless-stopped
+
+  beacon-collector:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.collector
+    ports:
+      - "9100:9100"
+    network_mode: host
+    cap_add:
+      - NET_RAW
+      - NET_ADMIN
+    volumes:
+      - beacon-data:/data
+    environment:
+      - BEACON_DATA_DIR=/data
+      - BEACON_ARTIFACT_DIR=/data/artifacts
+      - BEACON_EVIDENCE_DIR=/data/evidence
+    restart: unless-stopped
+
+  influxdb:
+    image: influxdb:2.7
+    ports:
+      - "8086:8086"
+    environment:
+      - DOCKER_INFLUXDB_INIT_MODE=setup
+      - DOCKER_INFLUXDB_INIT_USERNAME=beacon
+      - DOCKER_INFLUXDB_INIT_PASSWORD=beacon-dev-password
+      - DOCKER_INFLUXDB_INIT_ORG=beacon
+      - DOCKER_INFLUXDB_INIT_BUCKET=beacon
+      - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=beacon-dev-token
+    volumes:
+      - influxdb-data:/var/lib/influxdb2
+      - ./docker/influxdb-init.sh:/docker-entrypoint-initdb.d/init-telemetry.sh:ro
+    networks:
+      - beacon-net
+    healthcheck:
+      test: ["CMD", "influx", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+volumes:
+  beacon-data:
+  influxdb-data:
+
+networks:
+  beacon-net:
+    driver: bridge

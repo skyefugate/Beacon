@@ -1,0 +1,1 @@
+"""Beacon API route modules."""

@@ -1,0 +1,1 @@
+"""Beacon FastAPI application."""

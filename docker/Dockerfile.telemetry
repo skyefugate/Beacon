@@ -1,0 +1,28 @@
+FROM python:3.11-slim AS base
+
+WORKDIR /app
+
+# Install system deps for network diagnostics
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    iputils-ping \
+    iproute2 \
+    iw \
+    wireless-tools \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy source and install Python deps
+COPY pyproject.toml .
+COPY src/ src/
+COPY beacon.yaml .
+RUN pip install --no-cache-dir .
+
+# Create data directory for SQLite buffer
+RUN mkdir -p /data
+
+EXPOSE 8000
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=15s --retries=3 \
+    CMD test -f /tmp/beacon-telemetry.pid && kill -0 $(cat /tmp/beacon-telemetry.pid) || exit 1
+
+CMD ["python", "-m", "beacon", "telemetry", "start"]

@@ -1,0 +1,41 @@
+# Stage 1: Build the React dashboard
+FROM node:20-slim AS ui-build
+WORKDIR /ui
+COPY ui/package.json ui/package-lock.json ./
+RUN npm ci
+COPY ui/ .
+RUN npm run build
+
+# Stage 2: Python application
+FROM python:3.11-slim AS base
+
+WORKDIR /app
+
+# Install system deps
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy source and install Python deps
+COPY pyproject.toml .
+COPY src/ src/
+COPY packs/ packs/
+COPY beacon.yaml .
+RUN pip install --no-cache-dir .
+
+# Copy built dashboard from Stage 1
+COPY --from=ui-build /ui/dist /app/ui/dist
+
+# Create non-root user
+RUN groupadd -r beacon && useradd -r -g beacon -d /app beacon \
+    && mkdir -p /data/artifacts /data/evidence \
+    && chown -R beacon:beacon /app /data
+
+USER beacon
+
+EXPOSE 8000
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+    CMD curl -f http://localhost:8000/health || exit 1
+
+CMD ["uvicorn", "beacon.api.app:app", "--host", "0.0.0.0", "--port", "8000"]
