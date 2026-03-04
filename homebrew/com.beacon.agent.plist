@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.beacon.agent</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>HOMEBREW_PREFIX/bin/beacon</string>
+    <string>telemetry</string>
+    <string>start</string>
+  </array>
+
+  <key>RunAtLoad</key>
+  <true/>
+
+  <key>KeepAlive</key>
+  <true/>
+
+  <key>StandardOutPath</key>
+  <string>HOME_DIR/Library/Logs/Beacon/agent.log</string>
+
+  <key>StandardErrorPath</key>
+  <string>HOME_DIR/Library/Logs/Beacon/agent.log</string>
+
+  <key>WorkingDirectory</key>
+  <string>HOMEBREW_PREFIX/var/beacon</string>
+
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>PATH</key>
+    <string>HOMEBREW_PREFIX/bin:/usr/local/bin:/usr/bin:/bin</string>
+    <key>BEACON_TELEMETRY_ENABLED</key>
+    <string>true</string>
+    <key>INFLUXDB_URL</key>
+    <string>http://127.0.0.1:8086</string>
+    <key>INFLUXDB_TOKEN</key>
+    <string>beacon-dev-token</string>
+    <key>INFLUXDB_ORG</key>
+    <string>beacon</string>
+  </dict>
+
+  <key>ProcessType</key>
+  <string>Background</string>
+
+  <key>ThrottleInterval</key>
+  <integer>10</integer>
+</dict>
+</plist>

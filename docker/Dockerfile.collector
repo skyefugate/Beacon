@@ -1,0 +1,31 @@
+FROM python:3.11-slim AS base
+
+WORKDIR /app
+
+# Install system deps for network diagnostics
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    iputils-ping \
+    traceroute \
+    iproute2 \
+    iw \
+    wireless-tools \
+    tcpdump \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy source and install Python deps
+COPY pyproject.toml .
+COPY src/ src/
+COPY beacon.yaml .
+RUN pip install --no-cache-dir .
+
+# Collector runs as root for privileged operations (NET_RAW, NET_ADMIN)
+# Privilege is scoped via Docker capabilities rather than running the whole
+# container as --privileged.
+
+EXPOSE 9100
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+    CMD curl -f http://localhost:9100/health || exit 1
+
+CMD ["uvicorn", "beacon.collectors.server:app", "--host", "0.0.0.0", "--port", "9100"]

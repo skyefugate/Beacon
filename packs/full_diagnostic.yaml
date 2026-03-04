@@ -1,0 +1,78 @@
+name: full_diagnostic
+description: "Complete network diagnostic — tests all domains from device to application layer"
+version: "1.0"
+timeout_seconds: 180
+
+steps:
+  # Collectors (passive observation)
+  - plugin: device
+    type: collector
+    privileged: false
+
+  - plugin: lan
+    type: collector
+    privileged: false
+
+  - plugin: wifi
+    type: collector
+    privileged: true
+
+  - plugin: path
+    type: collector
+    privileged: true
+
+  # Runners (active tests)
+  - plugin: ping
+    type: runner
+    privileged: false
+    config:
+      targets:
+        - "8.8.8.8"
+        - "1.1.1.1"
+      count: 10
+      interval: 0.5
+
+  - plugin: dns
+    type: runner
+    privileged: false
+    config:
+      targets:
+        - "google.com"
+        - "cloudflare.com"
+        - "github.com"
+      extra:
+        resolvers:
+          - "8.8.8.8"
+          - "1.1.1.1"
+          - "9.9.9.9"
+
+  - plugin: http
+    type: runner
+    privileged: false
+    config:
+      targets:
+        - "https://www.google.com"
+        - "https://www.cloudflare.com"
+        - "https://github.com"
+      timeout_seconds: 15
+
+  - plugin: traceroute
+    type: runner
+    privileged: true
+    config:
+      targets:
+        - "8.8.8.8"
+      extra:
+        max_hops: 30
+
+  - plugin: throughput
+    type: runner
+    privileged: false
+    enabled: false
+    config:
+      extra:
+        server: null
+
+metadata:
+  category: diagnostic
+  estimated_duration_seconds: 120

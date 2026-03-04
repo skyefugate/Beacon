@@ -1,0 +1,36 @@
+name: quick_health
+description: "Quick health check — device status, single ping, and DNS"
+version: "1.0"
+timeout_seconds: 30
+
+steps:
+  - plugin: device
+    type: collector
+    privileged: false
+
+  - plugin: lan
+    type: collector
+    privileged: false
+
+  - plugin: ping
+    type: runner
+    privileged: false
+    config:
+      targets:
+        - "8.8.8.8"
+      count: 5
+      interval: 0.2
+
+  - plugin: dns
+    type: runner
+    privileged: false
+    config:
+      targets:
+        - "google.com"
+      extra:
+        resolvers:
+          - "8.8.8.8"
+
+metadata:
+  category: health
+  estimated_duration_seconds: 15
