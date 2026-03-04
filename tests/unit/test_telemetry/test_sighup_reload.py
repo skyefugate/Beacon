@@ -3,12 +3,9 @@
 from __future__ import annotations
 
 import logging
-from unittest.mock import MagicMock, patch
 
-import pytest
 
-import beacon.config as _cfg_mod
-from beacon.config import BeaconSettings, TelemetrySettings
+from beacon.config import BeaconSettings
 from beacon.telemetry.daemon import _build_scheduler, apply_config_reload
 
 
