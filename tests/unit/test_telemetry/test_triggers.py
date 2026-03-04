@@ -269,6 +269,7 @@ class TestNewDefaultTriggers:
         results = evaluator.evaluate(windows)
         assert results[0].fired is True
 
+
 class TestDeltaTrigger:
     def test_first_call_never_fires(self):
         rule = TriggerRule(
@@ -296,8 +297,12 @@ class TestDeltaTrigger:
             value=-10.0,
         )
         evaluator = TriggerEvaluator(rules=[rule])
-        evaluator.evaluate([_make_window(measurement="t_wifi_link", field_name="rssi_dbm", mean=-60.0)])
-        results = evaluator.evaluate([_make_window(measurement="t_wifi_link", field_name="rssi_dbm", mean=-63.0)])
+        evaluator.evaluate(
+            [_make_window(measurement="t_wifi_link", field_name="rssi_dbm", mean=-60.0)]
+        )
+        results = evaluator.evaluate(
+            [_make_window(measurement="t_wifi_link", field_name="rssi_dbm", mean=-63.0)]
+        )
         assert results[0].fired is False  # only -3 dBm drop, threshold is -10
 
     def test_large_delta_fires(self):
@@ -311,7 +316,11 @@ class TestDeltaTrigger:
             value=-10.0,
         )
         evaluator = TriggerEvaluator(rules=[rule])
-        evaluator.evaluate([_make_window(measurement="t_wifi_link", field_name="rssi_dbm", mean=-60.0)])
-        results = evaluator.evaluate([_make_window(measurement="t_wifi_link", field_name="rssi_dbm", mean=-75.0)])
+        evaluator.evaluate(
+            [_make_window(measurement="t_wifi_link", field_name="rssi_dbm", mean=-60.0)]
+        )
+        results = evaluator.evaluate(
+            [_make_window(measurement="t_wifi_link", field_name="rssi_dbm", mean=-75.0)]
+        )
         assert results[0].fired is True  # -15 dBm drop exceeds threshold
         assert results[0].event is not None
