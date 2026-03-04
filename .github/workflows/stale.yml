@@ -1,0 +1,17 @@
+name: Close Stale Issues
+
+on:
+  schedule:
+    - cron: '0 0 * * 0'
+  workflow_dispatch:
+
+jobs:
+  stale:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/stale@v9
+        with:
+          stale-issue-message: 'This issue is stale. Closing in 7 days unless there is activity.'
+          stale-pr-message: 'This PR is stale. Closing in 7 days unless there is activity.'
+          days-before-stale: 60
+          days-before-close: 7
