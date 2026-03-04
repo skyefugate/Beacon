@@ -35,8 +35,10 @@ class TestRunnerConfig:
 
 class TestPingRunner:
     def test_returns_valid_envelope(self):
-        with patch("beacon.runners.ping.subprocess") as mock_subprocess, \
-             patch("beacon.runners.ping.platform") as mock_platform:
+        with (
+            patch("beacon.runners.ping.subprocess") as mock_subprocess,
+            patch("beacon.runners.ping.platform") as mock_platform,
+        ):
             mock_platform.system.return_value = "Linux"
             mock_subprocess.run.return_value = MagicMock(
                 returncode=0,
@@ -58,8 +60,10 @@ class TestPingRunner:
             assert envelope.metrics[0].fields["loss_pct"] == 0.0
 
     def test_packet_loss_generates_event(self):
-        with patch("beacon.runners.ping.subprocess") as mock_subprocess, \
-             patch("beacon.runners.ping.platform") as mock_platform:
+        with (
+            patch("beacon.runners.ping.subprocess") as mock_subprocess,
+            patch("beacon.runners.ping.platform") as mock_platform,
+        ):
             mock_platform.system.return_value = "Linux"
             mock_subprocess.run.return_value = MagicMock(
                 returncode=0,
@@ -74,8 +78,10 @@ class TestPingRunner:
             assert len(loss_events) == 1
 
     def test_high_latency_generates_event(self):
-        with patch("beacon.runners.ping.subprocess") as mock_subprocess, \
-             patch("beacon.runners.ping.platform") as mock_platform:
+        with (
+            patch("beacon.runners.ping.subprocess") as mock_subprocess,
+            patch("beacon.runners.ping.platform") as mock_platform,
+        ):
             mock_platform.system.return_value = "Linux"
             mock_subprocess.run.return_value = MagicMock(
                 returncode=0,
@@ -244,8 +250,10 @@ class TestTracerouteRunner:
         assert hops[3]["ip"] == "8.8.8.8"
 
     def test_returns_valid_envelope(self):
-        with patch("beacon.runners.traceroute.subprocess") as mock_subprocess, \
-             patch("beacon.runners.traceroute.platform") as mock_platform:
+        with (
+            patch("beacon.runners.traceroute.subprocess") as mock_subprocess,
+            patch("beacon.runners.traceroute.platform") as mock_platform,
+        ):
             mock_platform.system.return_value = "Linux"
             mock_subprocess.run.return_value = MagicMock(
                 returncode=0,

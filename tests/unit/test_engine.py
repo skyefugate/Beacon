@@ -35,52 +35,72 @@ def _make_envelope(
 
 class TestHeuristicRuleSet:
     def test_matches_high_cpu_metric(self):
-        envelope = _make_envelope("device", metrics=[
-            Metric(measurement="device_cpu", fields={"percent": 95.0}, timestamp=_now()),
-        ])
+        envelope = _make_envelope(
+            "device",
+            metrics=[
+                Metric(measurement="device_cpu", fields={"percent": 95.0}, timestamp=_now()),
+            ],
+        )
         rules = HeuristicRuleSet()
         matches = rules.evaluate([envelope])
         assert any(m.signal.name == "high_cpu" for m in matches)
 
     def test_matches_event_by_type(self):
-        envelope = _make_envelope("ping", events=[
-            Event(
-                event_type="packet_loss_external",
-                severity=Severity.WARNING,
-                message="Loss detected",
-                timestamp=_now(),
-            ),
-        ])
+        envelope = _make_envelope(
+            "ping",
+            events=[
+                Event(
+                    event_type="packet_loss_external",
+                    severity=Severity.WARNING,
+                    message="Loss detected",
+                    timestamp=_now(),
+                ),
+            ],
+        )
         rules = HeuristicRuleSet()
         matches = rules.evaluate([envelope])
         assert any(m.signal.name == "packet_loss_external" for m in matches)
 
     def test_no_matches_for_normal_metrics(self):
-        envelope = _make_envelope("device", metrics=[
-            Metric(measurement="device_cpu", fields={"percent": 25.0}, timestamp=_now()),
-            Metric(measurement="ping", fields={"loss_pct": 0.0, "rtt_avg_ms": 15.0}, tags={"target": "8.8.8.8"}, timestamp=_now()),
-        ])
+        envelope = _make_envelope(
+            "device",
+            metrics=[
+                Metric(measurement="device_cpu", fields={"percent": 25.0}, timestamp=_now()),
+                Metric(
+                    measurement="ping",
+                    fields={"loss_pct": 0.0, "rtt_avg_ms": 15.0},
+                    tags={"target": "8.8.8.8"},
+                    timestamp=_now(),
+                ),
+            ],
+        )
         rules = HeuristicRuleSet()
         matches = rules.evaluate([envelope])
         assert len(matches) == 0
 
     def test_matches_weak_wifi(self):
-        envelope = _make_envelope("wifi", metrics=[
-            Metric(measurement="wifi_link", fields={"rssi_dbm": -80}, timestamp=_now()),
-        ])
+        envelope = _make_envelope(
+            "wifi",
+            metrics=[
+                Metric(measurement="wifi_link", fields={"rssi_dbm": -80}, timestamp=_now()),
+            ],
+        )
         rules = HeuristicRuleSet()
         matches = rules.evaluate([envelope])
         assert any(m.signal.name == "weak_signal" for m in matches)
 
     def test_matches_gateway_unreachable(self):
-        envelope = _make_envelope("path", metrics=[
-            Metric(
-                measurement="path_gateway",
-                fields={"reachable": False},
-                tags={"gateway": "192.168.1.1"},
-                timestamp=_now(),
-            ),
-        ])
+        envelope = _make_envelope(
+            "path",
+            metrics=[
+                Metric(
+                    measurement="path_gateway",
+                    fields={"reachable": False},
+                    tags={"gateway": "192.168.1.1"},
+                    timestamp=_now(),
+                ),
+            ],
+        )
         rules = HeuristicRuleSet()
         matches = rules.evaluate([envelope])
         assert any(m.signal.name == "gateway_unreachable" for m in matches)
@@ -89,13 +109,24 @@ class TestHeuristicRuleSet:
 class TestEventCorrelator:
     def test_correlates_nearby_events_and_metrics(self):
         now = _now()
-        envelope = _make_envelope("mixed",
+        envelope = _make_envelope(
+            "mixed",
             metrics=[
-                Metric(measurement="ping", fields={"loss_pct": 10.0}, tags={"target": "8.8.8.8"}, timestamp=now),
+                Metric(
+                    measurement="ping",
+                    fields={"loss_pct": 10.0},
+                    tags={"target": "8.8.8.8"},
+                    timestamp=now,
+                ),
             ],
             events=[
-                Event(event_type="packet_loss", severity=Severity.WARNING,
-                      message="Loss detected", tags={"target": "8.8.8.8"}, timestamp=now),
+                Event(
+                    event_type="packet_loss",
+                    severity=Severity.WARNING,
+                    message="Loss detected",
+                    tags={"target": "8.8.8.8"},
+                    timestamp=now,
+                ),
             ],
         )
 
@@ -106,13 +137,22 @@ class TestEventCorrelator:
 
     def test_no_correlation_outside_window(self):
         now = _now()
-        envelope = _make_envelope("mixed",
+        envelope = _make_envelope(
+            "mixed",
             metrics=[
-                Metric(measurement="ping", fields={"loss_pct": 10.0}, timestamp=now - timedelta(minutes=5)),
+                Metric(
+                    measurement="ping",
+                    fields={"loss_pct": 10.0},
+                    timestamp=now - timedelta(minutes=5),
+                ),
             ],
             events=[
-                Event(event_type="packet_loss", severity=Severity.WARNING,
-                      message="Loss", timestamp=now),
+                Event(
+                    event_type="packet_loss",
+                    severity=Severity.WARNING,
+                    message="Loss",
+                    timestamp=now,
+                ),
             ],
         )
 
@@ -185,13 +225,23 @@ class TestFaultDomainEngine:
     def test_full_analysis(self):
         now = _now()
         envelopes = [
-            _make_envelope("wifi", metrics=[
-                Metric(measurement="wifi_link", fields={"rssi_dbm": -82}, timestamp=now),
-            ]),
-            _make_envelope("ping", metrics=[
-                Metric(measurement="ping", fields={"loss_pct": 0.0, "rtt_avg_ms": 15.0},
-                       tags={"target": "8.8.8.8"}, timestamp=now),
-            ]),
+            _make_envelope(
+                "wifi",
+                metrics=[
+                    Metric(measurement="wifi_link", fields={"rssi_dbm": -82}, timestamp=now),
+                ],
+            ),
+            _make_envelope(
+                "ping",
+                metrics=[
+                    Metric(
+                        measurement="ping",
+                        fields={"loss_pct": 0.0, "rtt_avg_ms": 15.0},
+                        tags={"target": "8.8.8.8"},
+                        timestamp=now,
+                    ),
+                ],
+            ),
         ]
 
         engine = FaultDomainEngine()
@@ -203,13 +253,23 @@ class TestFaultDomainEngine:
     def test_no_problems(self):
         now = _now()
         envelopes = [
-            _make_envelope("device", metrics=[
-                Metric(measurement="device_cpu", fields={"percent": 20.0}, timestamp=now),
-            ]),
-            _make_envelope("ping", metrics=[
-                Metric(measurement="ping", fields={"loss_pct": 0.0, "rtt_avg_ms": 10.0},
-                       tags={"target": "8.8.8.8"}, timestamp=now),
-            ]),
+            _make_envelope(
+                "device",
+                metrics=[
+                    Metric(measurement="device_cpu", fields={"percent": 20.0}, timestamp=now),
+                ],
+            ),
+            _make_envelope(
+                "ping",
+                metrics=[
+                    Metric(
+                        measurement="ping",
+                        fields={"loss_pct": 0.0, "rtt_avg_ms": 10.0},
+                        tags={"target": "8.8.8.8"},
+                        timestamp=now,
+                    ),
+                ],
+            ),
         ]
 
         engine = FaultDomainEngine()

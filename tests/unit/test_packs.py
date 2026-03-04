@@ -86,11 +86,7 @@ class TestPackLoader:
     def test_load_file(self, tmp_path):
         pack_file = tmp_path / "test.yaml"
         pack_file.write_text(
-            "name: test_pack\n"
-            "description: Test\n"
-            "steps:\n"
-            "  - plugin: ping\n"
-            "    type: runner\n"
+            "name: test_pack\ndescription: Test\nsteps:\n  - plugin: ping\n    type: runner\n"
         )
         pack = PackLoader.load_file(pack_file)
         assert pack.name == "test_pack"
@@ -180,7 +176,8 @@ class TestPackExecutor:
 
         run_id = uuid4()
         now_dt = PluginEnvelope(
-            plugin_name="device", plugin_version="0.1.0",
+            plugin_name="device",
+            plugin_version="0.1.0",
             run_id=run_id,
             started_at="2024-01-01T00:00:00Z",
             completed_at="2024-01-01T00:00:01Z",
@@ -225,7 +222,8 @@ class TestPackExecutor:
         run_id = uuid4()
         mock_runner = MagicMock()
         mock_runner.run.return_value = PluginEnvelope(
-            plugin_name="ping", plugin_version="0.1.0",
+            plugin_name="ping",
+            plugin_version="0.1.0",
             run_id=run_id,
             started_at="2024-01-01T00:00:00Z",
             completed_at="2024-01-01T00:00:01Z",

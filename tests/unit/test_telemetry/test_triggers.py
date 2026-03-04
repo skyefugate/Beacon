@@ -87,11 +87,13 @@ class TestTriggerEvaluator:
             value=-75.0,
         )
         evaluator = TriggerEvaluator(rules=[rule])
-        windows = [_make_window(
-            measurement="t_wifi_link",
-            field_name="rssi_dbm",
-            mean=-80.0,
-        )]
+        windows = [
+            _make_window(
+                measurement="t_wifi_link",
+                field_name="rssi_dbm",
+                mean=-80.0,
+            )
+        ]
 
         results = evaluator.evaluate(windows)
         assert results[0].fired is True

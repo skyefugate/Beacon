@@ -39,17 +39,20 @@ class WiFiQualitySampler(BaseSampler):
         if not fields:
             return []
 
-        return [Metric(
-            measurement="t_wifi_quality",
-            fields=fields,
-            timestamp=now,
-        )]
+        return [
+            Metric(
+                measurement="t_wifi_quality",
+                fields=fields,
+                timestamp=now,
+            )
+        ]
 
     async def _sample_macos(self) -> dict:
         """Parse wdutil info for retry/error counters."""
         try:
             proc = await asyncio.create_subprocess_exec(
-                "wdutil", "info",
+                "wdutil",
+                "info",
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE,
             )
@@ -65,7 +68,8 @@ class WiFiQualitySampler(BaseSampler):
         try:
             # Find first wireless interface
             proc = await asyncio.create_subprocess_exec(
-                "iw", "dev",
+                "iw",
+                "dev",
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE,
             )
@@ -76,7 +80,10 @@ class WiFiQualitySampler(BaseSampler):
 
             # Get station dump
             proc = await asyncio.create_subprocess_exec(
-                "iw", interfaces[0], "station", "dump",
+                "iw",
+                interfaces[0],
+                "station",
+                "dump",
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE,
             )

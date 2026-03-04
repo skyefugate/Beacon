@@ -44,71 +44,87 @@ class DNSRunner(BaseTestRunner):
 
                     ips = [rdata.address for rdata in answers]
 
-                    metrics.append(Metric(
-                        measurement="dns_resolve",
-                        fields={
-                            "latency_ms": round(elapsed_ms, 2),
-                            "success": True,
-                            "answer_count": len(ips),
-                            "first_answer": ips[0] if ips else "",
-                        },
-                        tags={"resolver": resolver_addr, "domain": domain},
-                        timestamp=now,
-                    ))
-
-                    if elapsed_ms > 500:
-                        events.append(Event(
-                            event_type="slow_dns",
-                            severity=Severity.WARNING,
-                            message=f"DNS resolution slow: {domain} via {resolver_addr} took {elapsed_ms:.0f}ms",
+                    metrics.append(
+                        Metric(
+                            measurement="dns_resolve",
+                            fields={
+                                "latency_ms": round(elapsed_ms, 2),
+                                "success": True,
+                                "answer_count": len(ips),
+                                "first_answer": ips[0] if ips else "",
+                            },
                             tags={"resolver": resolver_addr, "domain": domain},
                             timestamp=now,
-                        ))
+                        )
+                    )
+
+                    if elapsed_ms > 500:
+                        events.append(
+                            Event(
+                                event_type="slow_dns",
+                                severity=Severity.WARNING,
+                                message=f"DNS resolution slow: {domain} via {resolver_addr} took {elapsed_ms:.0f}ms",
+                                tags={"resolver": resolver_addr, "domain": domain},
+                                timestamp=now,
+                            )
+                        )
 
                 except dns.resolver.NXDOMAIN:
-                    metrics.append(Metric(
-                        measurement="dns_resolve",
-                        fields={"success": False, "error": "NXDOMAIN"},
-                        tags={"resolver": resolver_addr, "domain": domain},
-                        timestamp=now,
-                    ))
-                    events.append(Event(
-                        event_type="dns_failure",
-                        severity=Severity.CRITICAL,
-                        message=f"NXDOMAIN: {domain} via {resolver_addr}",
-                        tags={"resolver": resolver_addr, "domain": domain},
-                        timestamp=now,
-                    ))
+                    metrics.append(
+                        Metric(
+                            measurement="dns_resolve",
+                            fields={"success": False, "error": "NXDOMAIN"},
+                            tags={"resolver": resolver_addr, "domain": domain},
+                            timestamp=now,
+                        )
+                    )
+                    events.append(
+                        Event(
+                            event_type="dns_failure",
+                            severity=Severity.CRITICAL,
+                            message=f"NXDOMAIN: {domain} via {resolver_addr}",
+                            tags={"resolver": resolver_addr, "domain": domain},
+                            timestamp=now,
+                        )
+                    )
 
                 except dns.resolver.NoNameservers:
-                    metrics.append(Metric(
-                        measurement="dns_resolve",
-                        fields={"success": False, "error": "no_nameservers"},
-                        tags={"resolver": resolver_addr, "domain": domain},
-                        timestamp=now,
-                    ))
-                    events.append(Event(
-                        event_type="dns_failure",
-                        severity=Severity.CRITICAL,
-                        message=f"No nameservers available for {domain} via {resolver_addr}",
-                        tags={"resolver": resolver_addr, "domain": domain},
-                        timestamp=now,
-                    ))
+                    metrics.append(
+                        Metric(
+                            measurement="dns_resolve",
+                            fields={"success": False, "error": "no_nameservers"},
+                            tags={"resolver": resolver_addr, "domain": domain},
+                            timestamp=now,
+                        )
+                    )
+                    events.append(
+                        Event(
+                            event_type="dns_failure",
+                            severity=Severity.CRITICAL,
+                            message=f"No nameservers available for {domain} via {resolver_addr}",
+                            tags={"resolver": resolver_addr, "domain": domain},
+                            timestamp=now,
+                        )
+                    )
 
                 except dns.exception.Timeout:
-                    metrics.append(Metric(
-                        measurement="dns_resolve",
-                        fields={"success": False, "error": "timeout"},
-                        tags={"resolver": resolver_addr, "domain": domain},
-                        timestamp=now,
-                    ))
-                    events.append(Event(
-                        event_type="dns_timeout",
-                        severity=Severity.CRITICAL,
-                        message=f"DNS timeout: {domain} via {resolver_addr}",
-                        tags={"resolver": resolver_addr, "domain": domain},
-                        timestamp=now,
-                    ))
+                    metrics.append(
+                        Metric(
+                            measurement="dns_resolve",
+                            fields={"success": False, "error": "timeout"},
+                            tags={"resolver": resolver_addr, "domain": domain},
+                            timestamp=now,
+                        )
+                    )
+                    events.append(
+                        Event(
+                            event_type="dns_timeout",
+                            severity=Severity.CRITICAL,
+                            message=f"DNS timeout: {domain} via {resolver_addr}",
+                            tags={"resolver": resolver_addr, "domain": domain},
+                            timestamp=now,
+                        )
+                    )
 
                 except Exception as e:
                     notes.append(f"DNS query failed for {domain} via {resolver_addr}: {e}")

@@ -49,7 +49,8 @@ class WiFiSampler(BaseSampler):
         # 1. airport
         try:
             proc = await asyncio.create_subprocess_exec(
-                _AIRPORT_PATH, "-I",
+                _AIRPORT_PATH,
+                "-I",
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE,
             )
@@ -64,7 +65,8 @@ class WiFiSampler(BaseSampler):
         # 2. system_profiler (unprivileged fallback)
         try:
             proc = await asyncio.create_subprocess_exec(
-                "system_profiler", "SPAirPortDataType",
+                "system_profiler",
+                "SPAirPortDataType",
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE,
             )
@@ -83,7 +85,8 @@ class WiFiSampler(BaseSampler):
         try:
             # Find wireless interfaces
             proc = await asyncio.create_subprocess_exec(
-                "iw", "dev",
+                "iw",
+                "dev",
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE,
             )
@@ -92,13 +95,16 @@ class WiFiSampler(BaseSampler):
                 return {}
 
             import re
+
             interfaces = re.findall(r"Interface\s+(\S+)", stdout.decode())
             if not interfaces:
                 return {}
 
             # Get link info for first interface
             proc = await asyncio.create_subprocess_exec(
-                "iw", interfaces[0], "link",
+                "iw",
+                interfaces[0],
+                "link",
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE,
             )

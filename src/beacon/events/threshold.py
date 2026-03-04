@@ -13,7 +13,7 @@ class ThresholdRule(BaseModel):
 
     measurement: str
     field: str
-    operator: str = ">"   # >, <, >=, <=, ==, !=
+    operator: str = ">"  # >, <, >=, <=, ==, !=
     value: float
     severity: Severity = Severity.WARNING
     message_template: str = "{measurement}.{field} {operator} {value} (actual: {actual})"
@@ -23,37 +23,58 @@ class ThresholdRule(BaseModel):
 # Built-in threshold rules
 DEFAULT_THRESHOLDS: list[ThresholdRule] = [
     ThresholdRule(
-        measurement="ping", field="loss_pct", operator=">", value=5.0,
+        measurement="ping",
+        field="loss_pct",
+        operator=">",
+        value=5.0,
         severity=Severity.WARNING,
         message_template="Packet loss {actual}% exceeds 5% threshold",
     ),
     ThresholdRule(
-        measurement="ping", field="loss_pct", operator=">=", value=50.0,
+        measurement="ping",
+        field="loss_pct",
+        operator=">=",
+        value=50.0,
         severity=Severity.CRITICAL,
         message_template="Severe packet loss: {actual}%",
     ),
     ThresholdRule(
-        measurement="ping", field="rtt_avg_ms", operator=">", value=100.0,
+        measurement="ping",
+        field="rtt_avg_ms",
+        operator=">",
+        value=100.0,
         severity=Severity.WARNING,
         message_template="Average RTT {actual}ms exceeds 100ms threshold",
     ),
     ThresholdRule(
-        measurement="dns_resolve", field="latency_ms", operator=">", value=500.0,
+        measurement="dns_resolve",
+        field="latency_ms",
+        operator=">",
+        value=500.0,
         severity=Severity.WARNING,
         message_template="DNS resolution took {actual}ms (>500ms)",
     ),
     ThresholdRule(
-        measurement="device_cpu", field="percent", operator=">", value=90.0,
+        measurement="device_cpu",
+        field="percent",
+        operator=">",
+        value=90.0,
         severity=Severity.WARNING,
         message_template="CPU usage at {actual}%",
     ),
     ThresholdRule(
-        measurement="device_memory", field="percent_used", operator=">", value=90.0,
+        measurement="device_memory",
+        field="percent_used",
+        operator=">",
+        value=90.0,
         severity=Severity.WARNING,
         message_template="Memory usage at {actual}%",
     ),
     ThresholdRule(
-        measurement="wifi_link", field="rssi_dbm", operator="<", value=-75.0,
+        measurement="wifi_link",
+        field="rssi_dbm",
+        operator="<",
+        value=-75.0,
         severity=Severity.WARNING,
         message_template="Wi-Fi signal weak: {actual} dBm",
     ),
@@ -88,9 +109,7 @@ class ThresholdMonitor:
 
                 # Check tag filters
                 if rule.tags_filter:
-                    if not all(
-                        metric.tags.get(k) == v for k, v in rule.tags_filter.items()
-                    ):
+                    if not all(metric.tags.get(k) == v for k, v in rule.tags_filter.items()):
                         continue
 
                 actual = metric.fields[rule.field]
@@ -106,16 +125,18 @@ class ThresholdMonitor:
                         value=rule.value,
                         actual=actual,
                     )
-                    events.append(Event(
-                        event_type="threshold_breach",
-                        severity=rule.severity,
-                        message=message,
-                        tags={
-                            "measurement": rule.measurement,
-                            "field": rule.field,
-                            **metric.tags,
-                        },
-                        timestamp=metric.timestamp,
-                    ))
+                    events.append(
+                        Event(
+                            event_type="threshold_breach",
+                            severity=rule.severity,
+                            message=message,
+                            tags={
+                                "measurement": rule.measurement,
+                                "field": rule.field,
+                                **metric.tags,
+                            },
+                            timestamp=metric.timestamp,
+                        )
+                    )
 
         return events

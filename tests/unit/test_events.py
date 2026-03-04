@@ -93,37 +93,43 @@ class TestThresholdMonitor:
         monitor = ThresholdMonitor(rules=[rule])
 
         # Matching tag
-        events = monitor.evaluate([
-            Metric(
-                measurement="ping",
-                fields={"loss_pct": 10.0},
-                tags={"target": "8.8.8.8"},
-                timestamp=_now(),
-            )
-        ])
+        events = monitor.evaluate(
+            [
+                Metric(
+                    measurement="ping",
+                    fields={"loss_pct": 10.0},
+                    tags={"target": "8.8.8.8"},
+                    timestamp=_now(),
+                )
+            ]
+        )
         assert len(events) == 1
 
         # Non-matching tag
-        events = monitor.evaluate([
-            Metric(
-                measurement="ping",
-                fields={"loss_pct": 10.0},
-                tags={"target": "1.1.1.1"},
-                timestamp=_now(),
-            )
-        ])
+        events = monitor.evaluate(
+            [
+                Metric(
+                    measurement="ping",
+                    fields={"loss_pct": 10.0},
+                    tags={"target": "1.1.1.1"},
+                    timestamp=_now(),
+                )
+            ]
+        )
         assert len(events) == 0
 
     def test_non_numeric_field_skipped(self):
         rule = ThresholdRule(measurement="test", field="name", operator=">", value=5.0)
         monitor = ThresholdMonitor(rules=[rule])
-        events = monitor.evaluate([
-            Metric(
-                measurement="test",
-                fields={"name": "hello"},
-                timestamp=_now(),
-            )
-        ])
+        events = monitor.evaluate(
+            [
+                Metric(
+                    measurement="test",
+                    fields={"name": "hello"},
+                    timestamp=_now(),
+                )
+            ]
+        )
         assert len(events) == 0
 
 

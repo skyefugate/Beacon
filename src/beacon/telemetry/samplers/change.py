@@ -46,23 +46,27 @@ class ChangeDetector(BaseSampler):
             old_val = self._previous[key]
             if old_val is not None and new_val != old_val:
                 changes[key] = f"{old_val} -> {new_val}"
-                self._events.append(Event(
-                    event_type=f"{key}_changed",
-                    severity=Severity.WARNING,
-                    message=f"{key} changed: {old_val} -> {new_val}",
-                    tags={"detector": "change"},
-                    timestamp=now,
-                ))
+                self._events.append(
+                    Event(
+                        event_type=f"{key}_changed",
+                        severity=Severity.WARNING,
+                        message=f"{key} changed: {old_val} -> {new_val}",
+                        tags={"detector": "change"},
+                        timestamp=now,
+                    )
+                )
 
         self._previous.update(current)
 
         if changes:
-            return [Metric(
-                measurement="t_change_event",
-                fields={"changes_detected": len(changes)},
-                tags={"changes": ",".join(changes.keys())},
-                timestamp=now,
-            )]
+            return [
+                Metric(
+                    measurement="t_change_event",
+                    fields={"changes_detected": len(changes)},
+                    tags={"changes": ",".join(changes.keys())},
+                    timestamp=now,
+                )
+            ]
         return []
 
     def pop_events(self) -> list[Event]:
@@ -112,9 +116,12 @@ class ChangeDetector(BaseSampler):
             return None
         try:
             import subprocess
+
             result = subprocess.run(
                 ["system_profiler", "SPAirPortDataType"],
-                capture_output=True, text=True, timeout=10,
+                capture_output=True,
+                text=True,
+                timeout=10,
             )
             if result.returncode != 0:
                 return None

@@ -87,7 +87,8 @@ class PackExecutor:
 
         try:
             response = httpx.post(
-                url, json=payload,
+                url,
+                json=payload,
                 timeout=self._collector_timeout,
             )
             response.raise_for_status()

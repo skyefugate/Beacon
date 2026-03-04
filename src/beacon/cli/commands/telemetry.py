@@ -24,11 +24,15 @@ console = Console()
 @telemetry_app.command()
 def start(
     daemon: bool = typer.Option(
-        False, "--daemon", "-d",
+        False,
+        "--daemon",
+        "-d",
         help="Run as a background daemon",
     ),
     config: Path | None = typer.Option(
-        None, "--config", "-c",
+        None,
+        "--config",
+        "-c",
         help="Path to beacon.yaml config file",
     ),
 ) -> None:

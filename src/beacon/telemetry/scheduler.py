@@ -65,21 +65,26 @@ class TelemetryScheduler:
             self._tasks.append(task)
 
         # Aggregation task
-        self._tasks.append(asyncio.create_task(
-            self._aggregation_loop(),
-            name="aggregation",
-        ))
+        self._tasks.append(
+            asyncio.create_task(
+                self._aggregation_loop(),
+                name="aggregation",
+            )
+        )
 
         # Export task
         if self._exporters:
-            self._tasks.append(asyncio.create_task(
-                self._export_loop(),
-                name="export",
-            ))
+            self._tasks.append(
+                asyncio.create_task(
+                    self._export_loop(),
+                    name="export",
+                )
+            )
 
         logger.info(
             "Telemetry scheduler started with %d samplers, %d exporters",
-            len(self._samplers), len(self._exporters),
+            len(self._samplers),
+            len(self._exporters),
         )
 
     async def stop(self) -> None:
@@ -144,7 +149,8 @@ class TelemetryScheduler:
                 logger.warning("Sampler %s error: %s", sampler.name, e)
 
             interval = self._interval_overrides.get(
-                sampler.name, sampler.default_interval,
+                sampler.name,
+                sampler.default_interval,
             )
             try:
                 await asyncio.sleep(interval)
@@ -189,21 +195,23 @@ class TelemetryScheduler:
         """Convert aggregated windows to Metrics and export them."""
         agg_metrics = []
         for w in windows:
-            agg_metrics.append(Metric(
-                measurement=f"{w.measurement}_agg",
-                fields={
-                    f"{w.field_name}_p50": w.p50,
-                    f"{w.field_name}_p95": w.p95,
-                    f"{w.field_name}_p99": w.p99,
-                    f"{w.field_name}_min": w.min,
-                    f"{w.field_name}_max": w.max,
-                    f"{w.field_name}_mean": w.mean,
-                    f"{w.field_name}_jitter": w.jitter,
-                    f"{w.field_name}_count": w.count,
-                },
-                tags=w.tags,
-                timestamp=w.window_end,
-            ))
+            agg_metrics.append(
+                Metric(
+                    measurement=f"{w.measurement}_agg",
+                    fields={
+                        f"{w.field_name}_p50": w.p50,
+                        f"{w.field_name}_p95": w.p95,
+                        f"{w.field_name}_p99": w.p99,
+                        f"{w.field_name}_min": w.min,
+                        f"{w.field_name}_max": w.max,
+                        f"{w.field_name}_mean": w.mean,
+                        f"{w.field_name}_jitter": w.jitter,
+                        f"{w.field_name}_count": w.count,
+                    },
+                    tags=w.tags,
+                    timestamp=w.window_end,
+                )
+            )
 
         for exporter in self._exporters:
             try:

@@ -72,24 +72,33 @@ class TestPackExecution:
 
         # Build evidence pack
         from beacon.config import StorageSettings
-        settings = BeaconSettings(storage=StorageSettings(
-            data_dir=tmp_path,
-            artifact_dir=tmp_path / "artifacts",
-            evidence_dir=tmp_path / "evidence",
-        ))
 
-        with patch("beacon.evidence.builder.capture_environment") as mock_env, \
-             patch("beacon.evidence.builder._capture_health") as mock_health:
+        settings = BeaconSettings(
+            storage=StorageSettings(
+                data_dir=tmp_path,
+                artifact_dir=tmp_path / "artifacts",
+                evidence_dir=tmp_path / "evidence",
+            )
+        )
+
+        with (
+            patch("beacon.evidence.builder.capture_environment") as mock_env,
+            patch("beacon.evidence.builder._capture_health") as mock_health,
+        ):
             from beacon.models.evidence import EnvironmentSnapshot
             from beacon.models.health import CPUHealth, HealthSnapshot, MemoryHealth
 
             mock_env.return_value = EnvironmentSnapshot(
-                hostname="test", os="Linux", os_version="6.1",
-                architecture="x86_64", python_version="3.11.0",
+                hostname="test",
+                os="Linux",
+                os_version="6.1",
+                architecture="x86_64",
+                python_version="3.11.0",
             )
             mock_health.return_value = HealthSnapshot(
-                cpu=CPUHealth(percent=25.0, load_avg_1m=1.0, load_avg_5m=0.8,
-                              load_avg_15m=0.6, core_count=4),
+                cpu=CPUHealth(
+                    percent=25.0, load_avg_1m=1.0, load_avg_5m=0.8, load_avg_15m=0.6, core_count=4
+                ),
                 memory=MemoryHealth(total_mb=8192, available_mb=4096, percent_used=50.0),
             )
 

@@ -20,8 +20,7 @@ class TestYAMLLoading:
     def test_load_existing_yaml(self, tmp_path):
         config_file = tmp_path / "beacon.yaml"
         config_file.write_text(
-            "beacon:\n  port: 9999\n  probe_id: test-probe\n"
-            "influxdb:\n  bucket: test-bucket\n"
+            "beacon:\n  port: 9999\n  probe_id: test-probe\ninfluxdb:\n  bucket: test-bucket\n"
         )
         data = _load_yaml_config(config_file)
         assert data["beacon"]["port"] == 9999
@@ -59,7 +58,12 @@ class TestBeaconSettings:
             "collector:\n  timeout_seconds: 60\n"
         )
         # Clear env vars that would override YAML
-        for key in ("BEACON_PORT", "BEACON_PROBE_ID", "INFLUXDB_BUCKET", "COLLECTOR_TIMEOUT_SECONDS"):
+        for key in (
+            "BEACON_PORT",
+            "BEACON_PROBE_ID",
+            "INFLUXDB_BUCKET",
+            "COLLECTOR_TIMEOUT_SECONDS",
+        ):
             monkeypatch.delenv(key, raising=False)
 
         settings = BeaconSettings.load(config_file)

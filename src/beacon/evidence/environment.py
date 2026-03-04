@@ -49,11 +49,14 @@ def _detect_gateway() -> str | None:
     """Best-effort gateway detection."""
     try:
         import subprocess
+
         system = platform.system()
         if system == "Darwin":
             result = subprocess.run(
                 ["route", "-n", "get", "default"],
-                capture_output=True, text=True, timeout=5,
+                capture_output=True,
+                text=True,
+                timeout=5,
             )
             for line in result.stdout.splitlines():
                 if "gateway:" in line:
@@ -61,7 +64,9 @@ def _detect_gateway() -> str | None:
         elif system == "Linux":
             result = subprocess.run(
                 ["ip", "route", "show", "default"],
-                capture_output=True, text=True, timeout=5,
+                capture_output=True,
+                text=True,
+                timeout=5,
             )
             parts = result.stdout.strip().split()
             if "via" in parts:
@@ -75,6 +80,7 @@ def _detect_public_ip() -> str | None:
     """Best-effort public IP detection via HTTPS."""
     try:
         import httpx
+
         response = httpx.get("https://api.ipify.org", timeout=5)
         if response.status_code == 200:
             return response.text.strip()

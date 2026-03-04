@@ -31,17 +31,20 @@ class TLSSampler(BaseSampler):
         metrics: list[Metric] = []
 
         async with httpx.AsyncClient(
-            timeout=self._timeout, verify=True,
+            timeout=self._timeout,
+            verify=True,
         ) as client:
             for url in self._targets:
                 fields = await self._probe_tls(client, url)
                 if fields:
-                    metrics.append(Metric(
-                        measurement="t_tls_handshake",
-                        fields=fields,
-                        tags={"url": url},
-                        timestamp=now,
-                    ))
+                    metrics.append(
+                        Metric(
+                            measurement="t_tls_handshake",
+                            fields=fields,
+                            tags={"url": url},
+                            timestamp=now,
+                        )
+                    )
 
         return metrics
 

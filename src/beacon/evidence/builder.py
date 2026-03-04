@@ -35,12 +35,14 @@ def _capture_health() -> HealthSnapshot:
     for part in psutil.disk_partitions():
         try:
             usage = psutil.disk_usage(part.mountpoint)
-            disks.append(DiskHealth(
-                path=part.mountpoint,
-                total_gb=usage.total / (1024**3),
-                free_gb=usage.free / (1024**3),
-                percent_used=usage.percent,
-            ))
+            disks.append(
+                DiskHealth(
+                    path=part.mountpoint,
+                    total_gb=usage.total / (1024**3),
+                    free_gb=usage.free / (1024**3),
+                    percent_used=usage.percent,
+                )
+            )
         except PermissionError:
             pass
 
@@ -48,12 +50,14 @@ def _capture_health() -> HealthSnapshot:
     try:
         for label, entries in psutil.sensors_temperatures().items():
             for entry in entries:
-                thermals.append(ThermalHealth(
-                    label=entry.label or label,
-                    current_celsius=entry.current,
-                    high_celsius=entry.high,
-                    critical_celsius=entry.critical,
-                ))
+                thermals.append(
+                    ThermalHealth(
+                        label=entry.label or label,
+                        current_celsius=entry.current,
+                        high_celsius=entry.high,
+                        critical_celsius=entry.critical,
+                    )
+                )
     except AttributeError:
         pass
 
@@ -138,6 +142,7 @@ class EvidencePackBuilder:
         )
 
         import socket
+
         host_id = socket.gethostname()
 
         return EvidencePack(

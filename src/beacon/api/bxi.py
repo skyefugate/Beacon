@@ -87,11 +87,31 @@ def compute_bxi(metrics: dict[str, Any]) -> BXIResult:
     jitter_raw = metrics.get("jitter_ms")
 
     # None → max penalty (unmeasurable means broken, not perfect)
-    p_rtt = 30.0 if rtt_raw is None else _penalty(float(rtt_raw), threshold=20.0, rate=5.0, step=25.0, cap=30.0)
-    p_loss = 30.0 if loss_raw is None else _penalty(float(loss_raw), threshold=0.0, rate=15.0, step=1.0, cap=30.0)
-    p_dns = 20.0 if dns_raw is None else _penalty(float(dns_raw), threshold=30.0, rate=5.0, step=50.0, cap=20.0)
-    p_http = 20.0 if http_raw is None else _penalty(float(http_raw), threshold=300.0, rate=5.0, step=200.0, cap=20.0)
-    p_jitter = 15.0 if jitter_raw is None else _penalty(float(jitter_raw), threshold=5.0, rate=5.0, step=5.0, cap=15.0)
+    p_rtt = (
+        30.0
+        if rtt_raw is None
+        else _penalty(float(rtt_raw), threshold=20.0, rate=5.0, step=25.0, cap=30.0)
+    )
+    p_loss = (
+        30.0
+        if loss_raw is None
+        else _penalty(float(loss_raw), threshold=0.0, rate=15.0, step=1.0, cap=30.0)
+    )
+    p_dns = (
+        20.0
+        if dns_raw is None
+        else _penalty(float(dns_raw), threshold=30.0, rate=5.0, step=50.0, cap=20.0)
+    )
+    p_http = (
+        20.0
+        if http_raw is None
+        else _penalty(float(http_raw), threshold=300.0, rate=5.0, step=200.0, cap=20.0)
+    )
+    p_jitter = (
+        15.0
+        if jitter_raw is None
+        else _penalty(float(jitter_raw), threshold=5.0, rate=5.0, step=5.0, cap=15.0)
+    )
 
     raw = 100.0 - p_rtt - p_loss - p_dns - p_http - p_jitter
     score = max(0, int(raw))

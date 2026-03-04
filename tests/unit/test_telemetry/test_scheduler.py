@@ -25,11 +25,13 @@ class MockSampler(BaseSampler):
 
     async def sample(self) -> list[Metric]:
         self.call_count += 1
-        return [Metric(
-            measurement="t_mock",
-            fields={"value": float(self.call_count)},
-            timestamp=datetime.now(timezone.utc),
-        )]
+        return [
+            Metric(
+                measurement="t_mock",
+                fields={"value": float(self.call_count)},
+                timestamp=datetime.now(timezone.utc),
+            )
+        ]
 
 
 class MockExporter(BaseExporter):

@@ -90,12 +90,8 @@ class EscalationManager:
     def process_triggers(self, results: list[TriggerResult]) -> list[EscalationAction]:
         """Process trigger results and return escalation actions."""
         fired = [r for r in results if r.fired]
-        has_critical = any(
-            r.rule.severity == Severity.CRITICAL for r in fired
-        )
-        has_warning = any(
-            r.rule.severity == Severity.WARNING for r in fired
-        )
+        has_critical = any(r.rule.severity == Severity.CRITICAL for r in fired)
+        has_warning = any(r.rule.severity == Severity.WARNING for r in fired)
         now = time.monotonic()
 
         if fired:
@@ -179,7 +175,8 @@ class EscalationManager:
         # Suppress Tier 2 (burst) during flap
         if self.is_flapping:
             actions = [
-                a for a in actions
+                a
+                for a in actions
                 if a not in (EscalationAction.ENABLE_BURST, EscalationAction.TRIGGER_PACK)
             ]
 
@@ -193,7 +190,9 @@ class EscalationManager:
 
         logger.info(
             "Escalation: %s → %s (%s), actions: %s",
-            self._state.value, to_state.value, reason,
+            self._state.value,
+            to_state.value,
+            reason,
             [a.value for a in actions],
         )
 

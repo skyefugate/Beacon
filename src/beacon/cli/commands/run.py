@@ -17,7 +17,9 @@ def run_pack(
     pack_name: str = typer.Argument(..., help="Name of the pack to run"),
     wait: bool = typer.Option(True, "--wait/--no-wait", help="Wait for completion"),
     output: str = typer.Option(None, "--output", "-o", help="Save evidence pack to file"),
-    server: str = typer.Option(None, "--server", "-s", help="API server URL (runs locally if not set)"),
+    server: str = typer.Option(
+        None, "--server", "-s", help="API server URL (runs locally if not set)"
+    ),
     timeout: int = typer.Option(180, "--timeout", help="Max wait time in seconds"),
 ):
     """Run a diagnostic pack and produce an evidence pack."""
@@ -73,6 +75,7 @@ def _run_locally(pack_name: str, output_path: str | None) -> None:
 
     if output_path:
         import shutil
+
         shutil.copy2(saved_path, output_path)
         print_success(f"Evidence pack saved to {output_path}")
     else:
@@ -89,7 +92,9 @@ def _run_locally(pack_name: str, output_path: str | None) -> None:
     if fd.fault_domain.value == "unknown" and fd.confidence == 0.0:
         if total_metrics > 0:
             console.print("[bold]Result:[/bold] [green]No faults detected[/green]")
-            console.print(f"[bold]Detail:[/bold] {total_metrics} metrics collected, all within normal ranges")
+            console.print(
+                f"[bold]Detail:[/bold] {total_metrics} metrics collected, all within normal ranges"
+            )
         else:
             console.print("[bold]Fault Domain:[/bold] unknown (insufficient data)")
     else:
@@ -161,4 +166,5 @@ def _run_via_api(
         print_success(f"Evidence pack saved to {output_path}")
     else:
         from beacon.cli.output import print_json
+
         print_json(evidence_data)

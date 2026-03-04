@@ -52,75 +52,95 @@ class HTTPRunner(BaseTestRunner):
                 if network_stream:
                     pass  # httpx doesn't expose fine-grained timing in sync mode
 
-                metrics.append(Metric(
-                    measurement="http_timing",
-                    fields=fields,
-                    tags={"url": url, "method": "GET"},
-                    timestamp=now,
-                ))
+                metrics.append(
+                    Metric(
+                        measurement="http_timing",
+                        fields=fields,
+                        tags={"url": url, "method": "GET"},
+                        timestamp=now,
+                    )
+                )
 
                 if response.status_code >= 400:
-                    events.append(Event(
-                        event_type="http_error",
-                        severity=Severity.WARNING if response.status_code < 500 else Severity.CRITICAL,
-                        message=f"HTTP {response.status_code} from {url}",
-                        tags={"url": url},
-                        timestamp=now,
-                    ))
+                    events.append(
+                        Event(
+                            event_type="http_error",
+                            severity=Severity.WARNING
+                            if response.status_code < 500
+                            else Severity.CRITICAL,
+                            message=f"HTTP {response.status_code} from {url}",
+                            tags={"url": url},
+                            timestamp=now,
+                        )
+                    )
 
                 if total_ms > 2000:
-                    events.append(Event(
-                        event_type="slow_http",
-                        severity=Severity.WARNING,
-                        message=f"Slow HTTP response from {url}: {total_ms:.0f}ms",
-                        tags={"url": url},
-                        timestamp=now,
-                    ))
+                    events.append(
+                        Event(
+                            event_type="slow_http",
+                            severity=Severity.WARNING,
+                            message=f"Slow HTTP response from {url}: {total_ms:.0f}ms",
+                            tags={"url": url},
+                            timestamp=now,
+                        )
+                    )
 
             except httpx.ConnectTimeout:
-                metrics.append(Metric(
-                    measurement="http_timing",
-                    fields={"success": False, "error": "connect_timeout"},
-                    tags={"url": url, "method": "GET"},
-                    timestamp=now,
-                ))
-                events.append(Event(
-                    event_type="http_timeout",
-                    severity=Severity.CRITICAL,
-                    message=f"Connection timeout to {url}",
-                    tags={"url": url},
-                    timestamp=now,
-                ))
+                metrics.append(
+                    Metric(
+                        measurement="http_timing",
+                        fields={"success": False, "error": "connect_timeout"},
+                        tags={"url": url, "method": "GET"},
+                        timestamp=now,
+                    )
+                )
+                events.append(
+                    Event(
+                        event_type="http_timeout",
+                        severity=Severity.CRITICAL,
+                        message=f"Connection timeout to {url}",
+                        tags={"url": url},
+                        timestamp=now,
+                    )
+                )
 
             except httpx.ReadTimeout:
-                metrics.append(Metric(
-                    measurement="http_timing",
-                    fields={"success": False, "error": "read_timeout"},
-                    tags={"url": url, "method": "GET"},
-                    timestamp=now,
-                ))
-                events.append(Event(
-                    event_type="http_timeout",
-                    severity=Severity.CRITICAL,
-                    message=f"Read timeout from {url}",
-                    tags={"url": url},
-                    timestamp=now,
-                ))
+                metrics.append(
+                    Metric(
+                        measurement="http_timing",
+                        fields={"success": False, "error": "read_timeout"},
+                        tags={"url": url, "method": "GET"},
+                        timestamp=now,
+                    )
+                )
+                events.append(
+                    Event(
+                        event_type="http_timeout",
+                        severity=Severity.CRITICAL,
+                        message=f"Read timeout from {url}",
+                        tags={"url": url},
+                        timestamp=now,
+                    )
+                )
 
             except httpx.ConnectError as e:
-                metrics.append(Metric(
-                    measurement="http_timing",
-                    fields={"success": False, "error": "connect_error"},
-                    tags={"url": url, "method": "GET"},
-                    timestamp=now,
-                ))
-                events.append(Event(
-                    event_type="http_connect_error",
-                    severity=Severity.CRITICAL,
-                    message=f"Cannot connect to {url}: {e}",
-                    tags={"url": url},
-                    timestamp=now,
-                ))
+                metrics.append(
+                    Metric(
+                        measurement="http_timing",
+                        fields={"success": False, "error": "connect_error"},
+                        tags={"url": url, "method": "GET"},
+                        timestamp=now,
+                    )
+                )
+                events.append(
+                    Event(
+                        event_type="http_connect_error",
+                        severity=Severity.CRITICAL,
+                        message=f"Cannot connect to {url}: {e}",
+                        tags={"url": url},
+                        timestamp=now,
+                    )
+                )
 
             except Exception as e:
                 notes.append(f"HTTP test failed for {url}: {e}")

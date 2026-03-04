@@ -45,13 +45,13 @@ class TestInfluxStorage:
         influx.write_metric(metric, run_id="test-run")
 
         # Query it back
-        query = '''
+        query = """
         from(bucket: "beacon")
             |> range(start: -1h)
             |> filter(fn: (r) => r._measurement == "test_beacon")
             |> filter(fn: (r) => r.source == "integration_test")
             |> last()
-        '''
+        """
         results = influx.query(query)
         assert len(results) >= 1
 

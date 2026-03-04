@@ -24,6 +24,7 @@ def print_warning(message: str) -> None:
 
 def print_json(data: dict) -> None:
     import json
+
     console.print_json(json.dumps(data, indent=2, default=str))
 
 

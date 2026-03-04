@@ -24,7 +24,9 @@ from beacon.models.envelope import Event, Metric, PluginEnvelope, Severity
 logger = logging.getLogger(__name__)
 
 # macOS airport binary path (removed in newer versions)
-_AIRPORT_PATH = "/System/Library/PrivateFrameworks/Apple80211.framework/Versions/Current/Resources/airport"
+_AIRPORT_PATH = (
+    "/System/Library/PrivateFrameworks/Apple80211.framework/Versions/Current/Resources/airport"
+)
 
 
 class WiFiCollector(BaseCollector):
@@ -113,7 +115,9 @@ class WiFiCollector(BaseCollector):
         """Collect via airport -I. Returns True if successful."""
         result = subprocess.run(
             [_AIRPORT_PATH, "-I"],
-            capture_output=True, text=True, timeout=10,
+            capture_output=True,
+            text=True,
+            timeout=10,
         )
         if result.returncode != 0:
             return False
@@ -135,7 +139,9 @@ class WiFiCollector(BaseCollector):
         """Collect via wdutil info (requires sudo). Returns True if successful."""
         result = subprocess.run(
             ["wdutil", "info"],
-            capture_output=True, text=True, timeout=10,
+            capture_output=True,
+            text=True,
+            timeout=10,
         )
         if result.returncode != 0:
             return False
@@ -157,7 +163,9 @@ class WiFiCollector(BaseCollector):
         """Collect via system_profiler SPAirPortDataType. Returns True if successful."""
         result = subprocess.run(
             ["system_profiler", "SPAirPortDataType"],
-            capture_output=True, text=True, timeout=15,
+            capture_output=True,
+            text=True,
+            timeout=15,
         )
         if result.returncode != 0:
             return False
@@ -314,31 +322,37 @@ class WiFiCollector(BaseCollector):
         if isinstance(rssi, (int, float)) and isinstance(noise, (int, float)):
             fields["snr_db"] = rssi - noise
 
-        metrics.append(Metric(
-            measurement="wifi_link",
-            fields=fields,
-            tags={"interface": iface},
-            timestamp=now,
-        ))
-
-        if isinstance(rssi, (int, float)) and rssi < -75:
-            events.append(Event(
-                event_type="weak_signal",
-                severity=Severity.WARNING,
-                message=f"Wi-Fi signal is weak: {rssi} dBm",
+        metrics.append(
+            Metric(
+                measurement="wifi_link",
+                fields=fields,
                 tags={"interface": iface},
                 timestamp=now,
-            ))
+            )
+        )
+
+        if isinstance(rssi, (int, float)) and rssi < -75:
+            events.append(
+                Event(
+                    event_type="weak_signal",
+                    severity=Severity.WARNING,
+                    message=f"Wi-Fi signal is weak: {rssi} dBm",
+                    tags={"interface": iface},
+                    timestamp=now,
+                )
+            )
 
         snr = fields.get("snr_db")
         if isinstance(snr, (int, float)) and snr < 15:
-            events.append(Event(
-                event_type="low_snr",
-                severity=Severity.WARNING,
-                message=f"Low signal-to-noise ratio: {snr} dB",
-                tags={"interface": iface},
-                timestamp=now,
-            ))
+            events.append(
+                Event(
+                    event_type="low_snr",
+                    severity=Severity.WARNING,
+                    message=f"Low signal-to-noise ratio: {snr} dB",
+                    tags={"interface": iface},
+                    timestamp=now,
+                )
+            )
 
     # ── Linux ──────────────────────────────────────────────────────
 
@@ -352,7 +366,9 @@ class WiFiCollector(BaseCollector):
         """Collect Wi-Fi metrics on Linux via iw."""
         result = subprocess.run(
             ["iw", "dev"],
-            capture_output=True, text=True, timeout=10,
+            capture_output=True,
+            text=True,
+            timeout=10,
         )
         if result.returncode != 0:
             notes.append("iw dev failed — no wireless interfaces?")
@@ -370,7 +386,9 @@ class WiFiCollector(BaseCollector):
         for iface in interfaces:
             link = subprocess.run(
                 ["iw", iface, "link"],
-                capture_output=True, text=True, timeout=10,
+                capture_output=True,
+                text=True,
+                timeout=10,
             )
             if "Not connected" in link.stdout:
                 notes.append(f"{iface} is not connected")

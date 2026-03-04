@@ -15,10 +15,10 @@ from beacon.telemetry.aggregator import AggregatedWindow
 
 
 class TriggerType(str, Enum):
-    THRESHOLD = "threshold"   # single-value comparison
-    DELTA = "delta"           # change from previous window
-    SUSTAINED = "sustained"   # threshold held for N consecutive windows
-    EVENT = "event"           # fires on any change event
+    THRESHOLD = "threshold"  # single-value comparison
+    DELTA = "delta"  # change from previous window
+    SUSTAINED = "sustained"  # threshold held for N consecutive windows
+    EVENT = "event"  # fires on any change event
 
 
 @dataclass
@@ -159,9 +159,7 @@ class TriggerEvaluator:
                 if rule.trigger_type == TriggerType.SUSTAINED:
                     key = f"{rule.name}:{window.measurement}:{frozenset(window.tags.items())}"
                     if fired:
-                        self._sustained_counts[key] = (
-                            self._sustained_counts.get(key, 0) + 1
-                        )
+                        self._sustained_counts[key] = self._sustained_counts.get(key, 0) + 1
                         if self._sustained_counts[key] < rule.sustained_count:
                             fired = False  # Not enough consecutive windows yet
                     else:
@@ -188,14 +186,21 @@ class TriggerEvaluator:
                         timestamp=window.window_end,
                     )
 
-                results.append(TriggerResult(
-                    rule=rule, actual=actual, fired=fired, event=event,
-                ))
+                results.append(
+                    TriggerResult(
+                        rule=rule,
+                        actual=actual,
+                        fired=fired,
+                        event=event,
+                    )
+                )
 
         return results
 
     def _find_matching_windows(
-        self, rule: TriggerRule, windows: list[AggregatedWindow],
+        self,
+        rule: TriggerRule,
+        windows: list[AggregatedWindow],
     ) -> list[AggregatedWindow]:
         """Find windows that match a rule's measurement and tags filter."""
         matching = []

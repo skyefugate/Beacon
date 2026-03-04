@@ -29,11 +29,7 @@ class TestWiFiQualitySampler:
         assert fields["tx_failed"] == 5
 
     def test_parse_wdutil_quality(self):
-        output = (
-            "WIFI:\n"
-            "    RSSI: -50 dBm\n"
-            "    Tx Rate: 1200.0 Mbps\n"
-        )
+        output = "WIFI:\n    RSSI: -50 dBm\n    Tx Rate: 1200.0 Mbps\n"
         fields = WiFiQualitySampler._parse_wdutil_quality(output)
         assert fields["rssi_dbm"] == -50
         assert fields["tx_rate_mbps"] == 1200.0

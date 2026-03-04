@@ -51,7 +51,9 @@ class TracerouteRunner(BaseTestRunner):
                     cmd = ["tracert", "-h", str(max_hops), target]
 
                 result = subprocess.run(
-                    cmd, capture_output=True, text=True,
+                    cmd,
+                    capture_output=True,
+                    text=True,
                     timeout=config.timeout_seconds + max_hops * 3,
                 )
 
@@ -59,12 +61,14 @@ class TracerouteRunner(BaseTestRunner):
                 timeout_streak = 0
 
                 for hop in hops:
-                    metrics.append(Metric(
-                        measurement="traceroute_hop",
-                        fields=hop,
-                        tags={"target": target, "hop": str(hop.get("hop_number", 0))},
-                        timestamp=now,
-                    ))
+                    metrics.append(
+                        Metric(
+                            measurement="traceroute_hop",
+                            fields=hop,
+                            tags={"target": target, "hop": str(hop.get("hop_number", 0))},
+                            timestamp=now,
+                        )
+                    )
 
                     if hop.get("all_timeouts", False):
                         timeout_streak += 1
@@ -72,28 +76,32 @@ class TracerouteRunner(BaseTestRunner):
                         timeout_streak = 0
 
                 if timeout_streak >= 3:
-                    events.append(Event(
-                        event_type="traceroute_blackhole",
-                        severity=Severity.WARNING,
-                        message=f"Multiple consecutive timeouts in traceroute to {target}",
-                        tags={"target": target},
-                        timestamp=now,
-                    ))
+                    events.append(
+                        Event(
+                            event_type="traceroute_blackhole",
+                            severity=Severity.WARNING,
+                            message=f"Multiple consecutive timeouts in traceroute to {target}",
+                            tags={"target": target},
+                            timestamp=now,
+                        )
+                    )
 
                 # Summary metric
                 total_hops = len(hops)
                 timeout_hops = sum(1 for h in hops if h.get("all_timeouts", False))
-                metrics.append(Metric(
-                    measurement="traceroute_summary",
-                    fields={
-                        "total_hops": total_hops,
-                        "timeout_hops": timeout_hops,
-                        "responding_hops": total_hops - timeout_hops,
-                        "completed": not result.stdout.strip().endswith("* * *"),
-                    },
-                    tags={"target": target},
-                    timestamp=now,
-                ))
+                metrics.append(
+                    Metric(
+                        measurement="traceroute_summary",
+                        fields={
+                            "total_hops": total_hops,
+                            "timeout_hops": timeout_hops,
+                            "responding_hops": total_hops - timeout_hops,
+                            "completed": not result.stdout.strip().endswith("* * *"),
+                        },
+                        tags={"target": target},
+                        timestamp=now,
+                    )
+                )
 
             except subprocess.TimeoutExpired:
                 notes.append(f"Traceroute to {target} timed out")

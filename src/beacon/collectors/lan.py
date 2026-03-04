@@ -58,46 +58,54 @@ class LANCollector(BaseCollector):
                 continue
 
             role = self._classify_interface(
-                iface, default_iface, ifaces_with_ipv4,
+                iface,
+                default_iface,
+                ifaces_with_ipv4,
                 has_traffic=(stats.bytes_sent + stats.bytes_recv) > 0,
             )
 
-            metrics.append(Metric(
-                measurement="lan_interface",
-                fields={
-                    "bytes_sent": stats.bytes_sent,
-                    "bytes_recv": stats.bytes_recv,
-                    "packets_sent": stats.packets_sent,
-                    "packets_recv": stats.packets_recv,
-                    "errin": stats.errin,
-                    "errout": stats.errout,
-                    "dropin": stats.dropin,
-                    "dropout": stats.dropout,
-                },
-                tags={"interface": iface, "role": role},
-                timestamp=now,
-            ))
+            metrics.append(
+                Metric(
+                    measurement="lan_interface",
+                    fields={
+                        "bytes_sent": stats.bytes_sent,
+                        "bytes_recv": stats.bytes_recv,
+                        "packets_sent": stats.packets_sent,
+                        "packets_recv": stats.packets_recv,
+                        "errin": stats.errin,
+                        "errout": stats.errout,
+                        "dropin": stats.dropin,
+                        "dropout": stats.dropout,
+                    },
+                    tags={"interface": iface, "role": role},
+                    timestamp=now,
+                )
+            )
 
             # Only flag errors/drops on non-virtual interfaces
             if role not in ("virtual", "inactive"):
                 total_errors = stats.errin + stats.errout
                 total_drops = stats.dropin + stats.dropout
                 if total_errors > 0:
-                    events.append(Event(
-                        event_type="interface_errors",
-                        severity=Severity.WARNING,
-                        message=f"Interface {iface} ({role}) has {total_errors} errors",
-                        tags={"interface": iface, "role": role},
-                        timestamp=now,
-                    ))
+                    events.append(
+                        Event(
+                            event_type="interface_errors",
+                            severity=Severity.WARNING,
+                            message=f"Interface {iface} ({role}) has {total_errors} errors",
+                            tags={"interface": iface, "role": role},
+                            timestamp=now,
+                        )
+                    )
                 if total_drops > 100:
-                    events.append(Event(
-                        event_type="interface_drops",
-                        severity=Severity.INFO,
-                        message=f"Interface {iface} ({role}) has {total_drops} drops",
-                        tags={"interface": iface, "role": role},
-                        timestamp=now,
-                    ))
+                    events.append(
+                        Event(
+                            event_type="interface_drops",
+                            severity=Severity.INFO,
+                            message=f"Interface {iface} ({role}) has {total_drops} drops",
+                            tags={"interface": iface, "role": role},
+                            timestamp=now,
+                        )
+                    )
 
         # Interface addresses (only for interfaces with IPv4)
         for iface, addr_list in addrs.items():
@@ -105,12 +113,14 @@ class LANCollector(BaseCollector):
                 continue
             for addr in addr_list:
                 if addr.family.name == "AF_INET":
-                    metrics.append(Metric(
-                        measurement="lan_address",
-                        fields={"address": addr.address},
-                        tags={"interface": iface, "family": "ipv4"},
-                        timestamp=now,
-                    ))
+                    metrics.append(
+                        Metric(
+                            measurement="lan_address",
+                            fields={"address": addr.address},
+                            tags={"interface": iface, "family": "ipv4"},
+                            timestamp=now,
+                        )
+                    )
 
         # Interface status
         if_stats = psutil.net_if_stats()
@@ -119,22 +129,25 @@ class LANCollector(BaseCollector):
                 continue
 
             role = self._classify_interface(
-                iface, default_iface, ifaces_with_ipv4,
-                has_traffic=iface in counters and (
-                    counters[iface].bytes_sent + counters[iface].bytes_recv
-                ) > 0,
+                iface,
+                default_iface,
+                ifaces_with_ipv4,
+                has_traffic=iface in counters
+                and (counters[iface].bytes_sent + counters[iface].bytes_recv) > 0,
             )
 
-            metrics.append(Metric(
-                measurement="lan_status",
-                fields={
-                    "is_up": stats.isup,
-                    "speed_mbps": stats.speed,
-                    "mtu": stats.mtu,
-                },
-                tags={"interface": iface, "role": role},
-                timestamp=now,
-            ))
+            metrics.append(
+                Metric(
+                    measurement="lan_status",
+                    fields={
+                        "is_up": stats.isup,
+                        "speed_mbps": stats.speed,
+                        "mtu": stats.mtu,
+                    },
+                    tags={"interface": iface, "role": role},
+                    timestamp=now,
+                )
+            )
 
         return PluginEnvelope(
             plugin_name=self.name,
@@ -182,7 +195,9 @@ class LANCollector(BaseCollector):
             if system == "Darwin":
                 result = subprocess.run(
                     ["route", "-n", "get", "default"],
-                    capture_output=True, text=True, timeout=5,
+                    capture_output=True,
+                    text=True,
+                    timeout=5,
                 )
                 for line in result.stdout.splitlines():
                     m = re.match(r"\s*interface:\s*(\S+)", line)
@@ -191,7 +206,9 @@ class LANCollector(BaseCollector):
             elif system == "Linux":
                 result = subprocess.run(
                     ["ip", "route", "show", "default"],
-                    capture_output=True, text=True, timeout=5,
+                    capture_output=True,
+                    text=True,
+                    timeout=5,
                 )
                 m = re.search(r"dev\s+(\S+)", result.stdout)
                 if m:

@@ -34,12 +34,16 @@ class EventCorrelator:
                     correlated_refs.append(ref)
 
             if correlated_refs:
-                event_ref = f"{event.event_type}:{','.join(f'{k}={v}' for k, v in event.tags.items())}"
-                correlations.append(EventCorrelation(
-                    event_ref=event_ref,
-                    correlated_metrics=correlated_refs,
-                    time_window_seconds=self._window.total_seconds(),
-                    description=event.message,
-                ))
+                event_ref = (
+                    f"{event.event_type}:{','.join(f'{k}={v}' for k, v in event.tags.items())}"
+                )
+                correlations.append(
+                    EventCorrelation(
+                        event_ref=event_ref,
+                        correlated_metrics=correlated_refs,
+                        time_window_seconds=self._window.total_seconds(),
+                        description=event.message,
+                    )
+                )
 
         return correlations

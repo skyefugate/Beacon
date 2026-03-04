@@ -21,9 +21,7 @@ class TestDeviceCollector:
             mock_psutil.virtual_memory.return_value = MagicMock(
                 total=8 * 1024**3, available=4 * 1024**3, percent=50.0
             )
-            mock_psutil.disk_partitions.return_value = [
-                MagicMock(mountpoint="/")
-            ]
+            mock_psutil.disk_partitions.return_value = [MagicMock(mountpoint="/")]
             mock_psutil.disk_usage.return_value = MagicMock(
                 total=256 * 1024**3, free=128 * 1024**3, percent=50.0
             )
@@ -75,9 +73,14 @@ class TestLANCollector:
         with patch("beacon.collectors.lan.psutil") as mock_psutil:
             mock_psutil.net_io_counters.return_value = {
                 "eth0": MagicMock(
-                    bytes_sent=1000, bytes_recv=2000,
-                    packets_sent=10, packets_recv=20,
-                    errin=0, errout=0, dropin=0, dropout=0,
+                    bytes_sent=1000,
+                    bytes_recv=2000,
+                    packets_sent=10,
+                    packets_recv=20,
+                    errin=0,
+                    errout=0,
+                    dropin=0,
+                    dropout=0,
                 ),
             }
             mock_psutil.net_if_addrs.return_value = {
@@ -97,9 +100,14 @@ class TestLANCollector:
         with patch("beacon.collectors.lan.psutil") as mock_psutil:
             mock_psutil.net_io_counters.return_value = {
                 "eth0": MagicMock(
-                    bytes_sent=1000, bytes_recv=2000,
-                    packets_sent=10, packets_recv=20,
-                    errin=5, errout=3, dropin=0, dropout=0,
+                    bytes_sent=1000,
+                    bytes_recv=2000,
+                    packets_sent=10,
+                    packets_recv=20,
+                    errin=5,
+                    errout=3,
+                    dropin=0,
+                    dropout=0,
                 ),
             }
             mock_psutil.net_if_addrs.return_value = {}
@@ -115,14 +123,24 @@ class TestLANCollector:
         with patch("beacon.collectors.lan.psutil") as mock_psutil:
             mock_psutil.net_io_counters.return_value = {
                 "lo": MagicMock(
-                    bytes_sent=100, bytes_recv=100,
-                    packets_sent=1, packets_recv=1,
-                    errin=0, errout=0, dropin=0, dropout=0,
+                    bytes_sent=100,
+                    bytes_recv=100,
+                    packets_sent=1,
+                    packets_recv=1,
+                    errin=0,
+                    errout=0,
+                    dropin=0,
+                    dropout=0,
                 ),
                 "lo0": MagicMock(
-                    bytes_sent=100, bytes_recv=100,
-                    packets_sent=1, packets_recv=1,
-                    errin=0, errout=0, dropin=0, dropout=0,
+                    bytes_sent=100,
+                    bytes_recv=100,
+                    packets_sent=1,
+                    packets_recv=1,
+                    errin=0,
+                    errout=0,
+                    dropin=0,
+                    dropout=0,
                 ),
             }
             mock_psutil.net_if_addrs.return_value = {}
@@ -138,8 +156,10 @@ class TestLANCollector:
 
 class TestWiFiCollector:
     def test_macos_collection(self):
-        with patch("beacon.collectors.wifi.platform") as mock_platform, \
-             patch("beacon.collectors.wifi.subprocess") as mock_subprocess:
+        with (
+            patch("beacon.collectors.wifi.platform") as mock_platform,
+            patch("beacon.collectors.wifi.subprocess") as mock_subprocess,
+        ):
             mock_platform.system.return_value = "Darwin"
             mock_subprocess.run.return_value = MagicMock(
                 returncode=0,
@@ -162,8 +182,10 @@ class TestWiFiCollector:
             assert wifi_metric.fields["ssid"] == "TestNetwork"
 
     def test_weak_signal_event(self):
-        with patch("beacon.collectors.wifi.platform") as mock_platform, \
-             patch("beacon.collectors.wifi.subprocess") as mock_subprocess:
+        with (
+            patch("beacon.collectors.wifi.platform") as mock_platform,
+            patch("beacon.collectors.wifi.subprocess") as mock_subprocess,
+        ):
             mock_platform.system.return_value = "Darwin"
             mock_subprocess.run.return_value = MagicMock(
                 returncode=0,
@@ -188,8 +210,10 @@ class TestWiFiCollector:
 
 class TestPathCollector:
     def test_gateway_reachable(self):
-        with patch("beacon.collectors.path.subprocess") as mock_subprocess, \
-             patch("beacon.collectors.path.platform") as mock_platform:
+        with (
+            patch("beacon.collectors.path.subprocess") as mock_subprocess,
+            patch("beacon.collectors.path.platform") as mock_platform,
+        ):
             mock_platform.system.return_value = "Linux"
             mock_subprocess.run.return_value = MagicMock(
                 returncode=0,
@@ -209,8 +233,10 @@ class TestPathCollector:
             assert envelope.metrics[0].fields["reachable"] is True
 
     def test_gateway_unreachable(self):
-        with patch("beacon.collectors.path.subprocess") as mock_subprocess, \
-             patch("beacon.collectors.path.platform") as mock_platform:
+        with (
+            patch("beacon.collectors.path.subprocess") as mock_subprocess,
+            patch("beacon.collectors.path.platform") as mock_platform,
+        ):
             mock_platform.system.return_value = "Linux"
             mock_subprocess.run.return_value = MagicMock(
                 returncode=1,
@@ -220,7 +246,9 @@ class TestPathCollector:
             collector = PathCollector(gateway="192.168.1.1")
             envelope = collector.collect(uuid4())
 
-            unreachable_events = [e for e in envelope.events if e.event_type == "gateway_unreachable"]
+            unreachable_events = [
+                e for e in envelope.events if e.event_type == "gateway_unreachable"
+            ]
             assert len(unreachable_events) == 1
 
     def test_no_gateway_detected(self):

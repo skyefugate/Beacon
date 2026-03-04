@@ -37,49 +37,58 @@ class PingRunner(BaseTestRunner):
 
                 result = subprocess.run(
                     ["ping", count_flag, str(config.count), *interval_flag, "-W", "2", target],
-                    capture_output=True, text=True,
+                    capture_output=True,
+                    text=True,
                     timeout=config.timeout_seconds + config.count * config.interval + 5,
                 )
 
                 fields = self._parse_ping_output(result.stdout, target)
                 fields["reachable"] = result.returncode == 0
 
-                metrics.append(Metric(
-                    measurement="ping",
-                    fields=fields,
-                    tags={"target": target},
-                    timestamp=now,
-                ))
+                metrics.append(
+                    Metric(
+                        measurement="ping",
+                        fields=fields,
+                        tags={"target": target},
+                        timestamp=now,
+                    )
+                )
 
                 loss = fields.get("loss_pct", 0.0)
                 if isinstance(loss, (int, float)) and loss > 0:
                     sev = Severity.CRITICAL if loss >= 50.0 else Severity.WARNING
-                    events.append(Event(
-                        event_type="packet_loss",
-                        severity=sev,
-                        message=f"Packet loss to {target}: {loss}%",
-                        tags={"target": target},
-                        timestamp=now,
-                    ))
+                    events.append(
+                        Event(
+                            event_type="packet_loss",
+                            severity=sev,
+                            message=f"Packet loss to {target}: {loss}%",
+                            tags={"target": target},
+                            timestamp=now,
+                        )
+                    )
 
                 rtt = fields.get("rtt_avg_ms")
                 if isinstance(rtt, (int, float)) and rtt > 100.0:
-                    events.append(Event(
-                        event_type="high_latency",
-                        severity=Severity.WARNING,
-                        message=f"High latency to {target}: {rtt:.1f}ms",
-                        tags={"target": target},
-                        timestamp=now,
-                    ))
+                    events.append(
+                        Event(
+                            event_type="high_latency",
+                            severity=Severity.WARNING,
+                            message=f"High latency to {target}: {rtt:.1f}ms",
+                            tags={"target": target},
+                            timestamp=now,
+                        )
+                    )
 
             except subprocess.TimeoutExpired:
                 notes.append(f"Ping to {target} timed out")
-                metrics.append(Metric(
-                    measurement="ping",
-                    fields={"reachable": False, "target": target},
-                    tags={"target": target},
-                    timestamp=now,
-                ))
+                metrics.append(
+                    Metric(
+                        measurement="ping",
+                        fields={"reachable": False, "target": target},
+                        tags={"target": target},
+                        timestamp=now,
+                    )
+                )
             except Exception as e:
                 notes.append(f"Ping to {target} failed: {e}")
 

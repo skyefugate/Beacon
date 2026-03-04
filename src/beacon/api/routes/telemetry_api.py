@@ -32,23 +32,43 @@ ALLOWED_MEASUREMENTS = {
 
 ALLOWED_FIELDS: dict[str, set[str]] = {
     "t_internet_rtt_agg": {
-        "rtt_avg_ms_mean", "rtt_avg_ms_p50", "rtt_avg_ms_p95", "rtt_avg_ms_p99",
-        "rtt_avg_ms_min", "rtt_avg_ms_max", "rtt_avg_ms_stddev",
-        "loss_pct_mean", "loss_pct_max",
+        "rtt_avg_ms_mean",
+        "rtt_avg_ms_p50",
+        "rtt_avg_ms_p95",
+        "rtt_avg_ms_p99",
+        "rtt_avg_ms_min",
+        "rtt_avg_ms_max",
+        "rtt_avg_ms_stddev",
+        "loss_pct_mean",
+        "loss_pct_max",
     },
     "t_dns_latency_agg": {
-        "latency_ms_mean", "latency_ms_p50", "latency_ms_p95", "latency_ms_p99",
-        "latency_ms_min", "latency_ms_max", "latency_ms_stddev",
+        "latency_ms_mean",
+        "latency_ms_p50",
+        "latency_ms_p95",
+        "latency_ms_p99",
+        "latency_ms_min",
+        "latency_ms_max",
+        "latency_ms_stddev",
     },
     "t_http_timing_agg": {
-        "total_ms_mean", "total_ms_p50", "total_ms_p95", "total_ms_p99",
-        "total_ms_min", "total_ms_max", "total_ms_stddev",
-        "ttfb_ms_mean", "ttfb_ms_p50", "ttfb_ms_p95",
+        "total_ms_mean",
+        "total_ms_p50",
+        "total_ms_p95",
+        "total_ms_p99",
+        "total_ms_min",
+        "total_ms_max",
+        "total_ms_stddev",
+        "ttfb_ms_mean",
+        "ttfb_ms_p50",
+        "ttfb_ms_p95",
         "status_code_mode",
     },
     "t_device_health_agg": {
-        "cpu_percent_mean", "cpu_percent_max",
-        "memory_percent_mean", "memory_percent_max",
+        "cpu_percent_mean",
+        "cpu_percent_max",
+        "memory_percent_mean",
+        "memory_percent_max",
         "disk_percent_mean",
     },
 }
@@ -232,10 +252,12 @@ from(bucket: "{bucket}")
     points = []
     for r in records:
         t = r.get("_time")
-        points.append({
-            "time": t.isoformat() if hasattr(t, "isoformat") else str(t),
-            "value": r.get("_value"),
-        })
+        points.append(
+            {
+                "time": t.isoformat() if hasattr(t, "isoformat") else str(t),
+                "value": r.get("_value"),
+            }
+        )
 
     return {
         "measurement": measurement,
@@ -258,8 +280,12 @@ async def telemetry_sparklines(
 
     # Compute aggregate window for ~50 points
     range_seconds = {
-        "5m": 300, "15m": 900, "1h": 3600,
-        "6h": 21600, "24h": 86400, "7d": 604800,
+        "5m": 300,
+        "15m": 900,
+        "1h": 3600,
+        "6h": 21600,
+        "24h": 86400,
+        "7d": 604800,
     }
     total = range_seconds[range]
     window_seconds = max(total // 50, 10)
@@ -296,10 +322,12 @@ from(bucket: "{bucket}")
             points = []
             for r in records:
                 t = r.get("_time")
-                points.append({
-                    "time": t.isoformat() if hasattr(t, "isoformat") else str(t),
-                    "value": r.get("_value"),
-                })
+                points.append(
+                    {
+                        "time": t.isoformat() if hasattr(t, "isoformat") else str(t),
+                        "value": r.get("_value"),
+                    }
+                )
             sparklines[key] = points
     except Exception as e:
         logger.error("InfluxDB sparklines query failed: %s", e)

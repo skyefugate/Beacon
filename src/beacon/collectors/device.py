@@ -27,60 +27,70 @@ class DeviceCollector(BaseCollector):
         # CPU
         cpu_pct = psutil.cpu_percent(interval=1)
         load_1, load_5, load_15 = psutil.getloadavg()
-        metrics.append(Metric(
-            measurement="device_cpu",
-            fields={
-                "percent": cpu_pct,
-                "load_avg_1m": load_1,
-                "load_avg_5m": load_5,
-                "load_avg_15m": load_15,
-                "core_count": psutil.cpu_count(logical=True) or 1,
-            },
-            timestamp=now,
-        ))
+        metrics.append(
+            Metric(
+                measurement="device_cpu",
+                fields={
+                    "percent": cpu_pct,
+                    "load_avg_1m": load_1,
+                    "load_avg_5m": load_5,
+                    "load_avg_15m": load_15,
+                    "core_count": psutil.cpu_count(logical=True) or 1,
+                },
+                timestamp=now,
+            )
+        )
 
         if cpu_pct > 90.0:
-            events.append(Event(
-                event_type="high_cpu",
-                severity=Severity.WARNING,
-                message=f"CPU usage at {cpu_pct}%",
-                timestamp=now,
-            ))
+            events.append(
+                Event(
+                    event_type="high_cpu",
+                    severity=Severity.WARNING,
+                    message=f"CPU usage at {cpu_pct}%",
+                    timestamp=now,
+                )
+            )
 
         # Memory
         mem = psutil.virtual_memory()
-        metrics.append(Metric(
-            measurement="device_memory",
-            fields={
-                "total_mb": mem.total / (1024 * 1024),
-                "available_mb": mem.available / (1024 * 1024),
-                "percent_used": mem.percent,
-            },
-            timestamp=now,
-        ))
+        metrics.append(
+            Metric(
+                measurement="device_memory",
+                fields={
+                    "total_mb": mem.total / (1024 * 1024),
+                    "available_mb": mem.available / (1024 * 1024),
+                    "percent_used": mem.percent,
+                },
+                timestamp=now,
+            )
+        )
 
         if mem.percent > 90.0:
-            events.append(Event(
-                event_type="high_memory",
-                severity=Severity.WARNING,
-                message=f"Memory usage at {mem.percent}%",
-                timestamp=now,
-            ))
+            events.append(
+                Event(
+                    event_type="high_memory",
+                    severity=Severity.WARNING,
+                    message=f"Memory usage at {mem.percent}%",
+                    timestamp=now,
+                )
+            )
 
         # Disk
         for part in psutil.disk_partitions():
             try:
                 usage = psutil.disk_usage(part.mountpoint)
-                metrics.append(Metric(
-                    measurement="device_disk",
-                    fields={
-                        "total_gb": usage.total / (1024**3),
-                        "free_gb": usage.free / (1024**3),
-                        "percent_used": usage.percent,
-                    },
-                    tags={"mountpoint": part.mountpoint},
-                    timestamp=now,
-                ))
+                metrics.append(
+                    Metric(
+                        measurement="device_disk",
+                        fields={
+                            "total_gb": usage.total / (1024**3),
+                            "free_gb": usage.free / (1024**3),
+                            "percent_used": usage.percent,
+                        },
+                        tags={"mountpoint": part.mountpoint},
+                        timestamp=now,
+                    )
+                )
             except PermissionError:
                 notes.append(f"Permission denied for disk {part.mountpoint}")
 
@@ -96,12 +106,14 @@ class DeviceCollector(BaseCollector):
                         fields["high_celsius"] = entry.high
                     if entry.critical is not None:
                         fields["critical_celsius"] = entry.critical
-                    metrics.append(Metric(
-                        measurement="device_thermal",
-                        fields=fields,
-                        tags={"sensor": entry.label or label},
-                        timestamp=now,
-                    ))
+                    metrics.append(
+                        Metric(
+                            measurement="device_thermal",
+                            fields=fields,
+                            tags={"sensor": entry.label or label},
+                            timestamp=now,
+                        )
+                    )
         except AttributeError:
             notes.append("Thermal sensors not available on this platform")
 

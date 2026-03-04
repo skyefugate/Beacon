@@ -31,16 +31,19 @@ class HTTPSampler(BaseSampler):
         metrics: list[Metric] = []
 
         async with httpx.AsyncClient(
-            timeout=self._timeout, follow_redirects=True,
+            timeout=self._timeout,
+            follow_redirects=True,
         ) as client:
             for url in self._targets:
                 fields = await self._probe(client, url)
-                metrics.append(Metric(
-                    measurement="t_http_timing",
-                    fields=fields,
-                    tags={"url": url, "method": "GET"},
-                    timestamp=now,
-                ))
+                metrics.append(
+                    Metric(
+                        measurement="t_http_timing",
+                        fields=fields,
+                        tags={"url": url, "method": "GET"},
+                        timestamp=now,
+                    )
+                )
 
         return metrics
 
@@ -54,9 +57,7 @@ class HTTPSampler(BaseSampler):
             return {
                 "status_code": response.status_code,
                 "total_ms": round(total_ms, 2),
-                "response_ms": round(
-                    response.elapsed.total_seconds() * 1000, 2
-                ),
+                "response_ms": round(response.elapsed.total_seconds() * 1000, 2),
                 "content_length": len(response.content),
                 "success": 200 <= response.status_code < 400,
             }

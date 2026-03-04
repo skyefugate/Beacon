@@ -124,9 +124,7 @@ class TestLinkTypeDetection:
         with patch("beacon.telemetry.samplers.context.subprocess") as mock_sub:
             mock_result = MagicMock()
             mock_result.stdout = (
-                "Hardware Port: Wi-Fi\n"
-                "Device: en0\n"
-                "Ethernet Address: a1:b2:c3:d4:e5:f6\n"
+                "Hardware Port: Wi-Fi\nDevice: en0\nEthernet Address: a1:b2:c3:d4:e5:f6\n"
             )
             mock_sub.run.return_value = mock_result
 
@@ -159,7 +157,9 @@ class TestNetworkTopology:
         with patch("beacon.telemetry.samplers.context.Path") as MockPath:
             MockPath.return_value.read_text.return_value = resolv_content
             # Patch the Path("/etc/resolv.conf") call
-            sampler._get_dns_servers.__wrapped__(sampler) if hasattr(sampler._get_dns_servers, '__wrapped__') else None
+            sampler._get_dns_servers.__wrapped__(sampler) if hasattr(
+                sampler._get_dns_servers, "__wrapped__"
+            ) else None
 
         # Test directly with mock
         with patch.object(ContextSampler, "_get_dns_servers", return_value="8.8.4.4,8.8.8.8"):
@@ -200,7 +200,9 @@ class TestNetworkTopology:
 
         with patch("beacon.telemetry.samplers.context.subprocess") as mock_sub:
             mock_result = MagicMock()
-            mock_result.stdout = "   route to: default\n   gateway: 192.168.1.1\n   interface: en0\n"
+            mock_result.stdout = (
+                "   route to: default\n   gateway: 192.168.1.1\n   interface: en0\n"
+            )
             mock_sub.run.return_value = mock_result
 
             sampler = ContextSampler()
@@ -322,7 +324,13 @@ class TestGeoEnrichment:
     @pytest.mark.asyncio
     async def test_geo_cache_valid(self):
         sampler = ContextSampler(geo_ttl=900)
-        sampler._cached_geo = {"asn": "AS15169", "isp_name": "Google", "geo_city": "MV", "geo_region": "CA", "geo_country": "US"}
+        sampler._cached_geo = {
+            "asn": "AS15169",
+            "isp_name": "Google",
+            "geo_city": "MV",
+            "geo_region": "CA",
+            "geo_country": "US",
+        }
         sampler._geo_for_ip = "8.8.8.8"
         sampler._geo_fetched_at = time.monotonic()  # just fetched
 
@@ -332,7 +340,13 @@ class TestGeoEnrichment:
     @pytest.mark.asyncio
     async def test_geo_refetch_on_ip_change(self):
         sampler = ContextSampler(geo_ttl=900)
-        sampler._cached_geo = {"asn": "AS15169", "isp_name": "Google", "geo_city": "MV", "geo_region": "CA", "geo_country": "US"}
+        sampler._cached_geo = {
+            "asn": "AS15169",
+            "isp_name": "Google",
+            "geo_city": "MV",
+            "geo_region": "CA",
+            "geo_country": "US",
+        }
         sampler._geo_for_ip = "8.8.8.8"
         sampler._geo_fetched_at = time.monotonic()  # cache still valid
 
@@ -362,7 +376,13 @@ class TestGeoEnrichment:
     @pytest.mark.asyncio
     async def test_geo_failure_returns_stale(self):
         sampler = ContextSampler(geo_ttl=900)
-        sampler._cached_geo = {"asn": "AS15169", "isp_name": "Google", "geo_city": "MV", "geo_region": "CA", "geo_country": "US"}
+        sampler._cached_geo = {
+            "asn": "AS15169",
+            "isp_name": "Google",
+            "geo_city": "MV",
+            "geo_region": "CA",
+            "geo_country": "US",
+        }
         sampler._geo_for_ip = "8.8.8.8"
         sampler._geo_fetched_at = time.monotonic() - 1000  # expired
 

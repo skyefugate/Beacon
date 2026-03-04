@@ -49,14 +49,22 @@ class ThroughputRunner(BaseTestRunner):
             now = self._now()
             try:
                 cmd = [
-                    "iperf3", "-c", server, "-p", str(port),
-                    "-t", str(duration), "-J",
+                    "iperf3",
+                    "-c",
+                    server,
+                    "-p",
+                    str(port),
+                    "-t",
+                    str(duration),
+                    "-J",
                 ]
                 if direction == "download":
                     cmd.append("-R")
 
                 result = subprocess.run(
-                    cmd, capture_output=True, text=True,
+                    cmd,
+                    capture_output=True,
+                    text=True,
                     timeout=duration + 15,
                 )
 
@@ -84,21 +92,25 @@ class ThroughputRunner(BaseTestRunner):
                 if "lost_packets" in summary:
                     fields["lost_packets"] = summary["lost_packets"]
 
-                metrics.append(Metric(
-                    measurement="throughput",
-                    fields=fields,
-                    tags={"server": server, "direction": direction},
-                    timestamp=now,
-                ))
-
-                if mbps < 10:
-                    events.append(Event(
-                        event_type="low_throughput",
-                        severity=Severity.WARNING,
-                        message=f"Low {direction} throughput: {mbps:.1f} Mbps",
+                metrics.append(
+                    Metric(
+                        measurement="throughput",
+                        fields=fields,
                         tags={"server": server, "direction": direction},
                         timestamp=now,
-                    ))
+                    )
+                )
+
+                if mbps < 10:
+                    events.append(
+                        Event(
+                            event_type="low_throughput",
+                            severity=Severity.WARNING,
+                            message=f"Low {direction} throughput: {mbps:.1f} Mbps",
+                            tags={"server": server, "direction": direction},
+                            timestamp=now,
+                        )
+                    )
 
             except FileNotFoundError:
                 notes.append("iperf3 not installed — skipping throughput test")

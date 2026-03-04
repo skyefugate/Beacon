@@ -26,10 +26,7 @@ def list_packs():
         console.print("No packs found. Check the 'packs/' directory.")
         return
 
-    rows = [
-        [p.name, p.description, p.version, str(len(p.steps))]
-        for p in packs
-    ]
+    rows = [[p.name, p.description, p.version, str(len(p.steps))] for p in packs]
     print_table("Available Packs", ["Name", "Description", "Version", "Steps"], rows)
 
 

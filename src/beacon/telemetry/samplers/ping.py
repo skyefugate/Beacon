@@ -44,15 +44,15 @@ class PingSampler(BaseSampler):
         for target in targets:
             fields = await self._ping_target(target)
             if fields:
-                measurement = (
-                    "t_gateway_rtt" if target == self._gateway else "t_internet_rtt"
+                measurement = "t_gateway_rtt" if target == self._gateway else "t_internet_rtt"
+                metrics.append(
+                    Metric(
+                        measurement=measurement,
+                        fields=fields,
+                        tags={"target": target},
+                        timestamp=now,
+                    )
                 )
-                metrics.append(Metric(
-                    measurement=measurement,
-                    fields=fields,
-                    tags={"target": target},
-                    timestamp=now,
-                ))
 
         return metrics
 
@@ -63,7 +63,12 @@ class PingSampler(BaseSampler):
 
         try:
             proc = await asyncio.create_subprocess_exec(
-                "ping", count_flag, str(self._count), "-W", "2", target,
+                "ping",
+                count_flag,
+                str(self._count),
+                "-W",
+                "2",
+                target,
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE,
             )
@@ -82,23 +87,31 @@ class PingSampler(BaseSampler):
         try:
             if system == "Darwin":
                 proc = await asyncio.create_subprocess_exec(
-                    "route", "-n", "get", "default",
+                    "route",
+                    "-n",
+                    "get",
+                    "default",
                     stdout=asyncio.subprocess.PIPE,
                     stderr=asyncio.subprocess.PIPE,
                 )
                 stdout, _ = await asyncio.wait_for(proc.communicate(), timeout=5)
                 import re
+
                 m = re.search(r"gateway:\s*(\S+)", stdout.decode())
                 if m:
                     return m.group(1)
             elif system == "Linux":
                 proc = await asyncio.create_subprocess_exec(
-                    "ip", "route", "show", "default",
+                    "ip",
+                    "route",
+                    "show",
+                    "default",
                     stdout=asyncio.subprocess.PIPE,
                     stderr=asyncio.subprocess.PIPE,
                 )
                 stdout, _ = await asyncio.wait_for(proc.communicate(), timeout=5)
                 import re
+
                 m = re.search(r"via\s+(\S+)", stdout.decode())
                 if m:
                     return m.group(1)
