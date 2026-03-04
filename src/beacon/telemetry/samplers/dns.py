@@ -36,14 +36,18 @@ class DNSSampler(BaseSampler):
         for resolver_addr in self._resolvers:
             for domain in self._domains:
                 fields = await asyncio.to_thread(
-                    self._resolve, resolver_addr, domain,
+                    self._resolve,
+                    resolver_addr,
+                    domain,
                 )
-                metrics.append(Metric(
-                    measurement="t_dns_latency",
-                    fields=fields,
-                    tags={"resolver": resolver_addr, "domain": domain},
-                    timestamp=now,
-                ))
+                metrics.append(
+                    Metric(
+                        measurement="t_dns_latency",
+                        fields=fields,
+                        tags={"resolver": resolver_addr, "domain": domain},
+                        timestamp=now,
+                    )
+                )
 
         return metrics
 

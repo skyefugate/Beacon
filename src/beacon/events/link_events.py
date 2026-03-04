@@ -30,27 +30,29 @@ class LinkFlapDetector:
 
             # Check for flapping: alternating up/down states
             if len(history) >= self._flap_threshold:
-                recent = history[-self._flap_threshold:]
-                transitions = sum(
-                    1 for i in range(1, len(recent)) if recent[i] != recent[i - 1]
-                )
+                recent = history[-self._flap_threshold :]
+                transitions = sum(1 for i in range(1, len(recent)) if recent[i] != recent[i - 1])
                 if transitions >= self._flap_threshold - 1:
-                    events.append(Event(
-                        event_type="link_flap",
-                        severity=Severity.CRITICAL,
-                        message=f"Interface {iface} is flapping ({transitions} transitions in last {self._flap_threshold} observations)",
-                        tags={"interface": iface},
-                        timestamp=metric.timestamp,
-                    ))
+                    events.append(
+                        Event(
+                            event_type="link_flap",
+                            severity=Severity.CRITICAL,
+                            message=f"Interface {iface} is flapping ({transitions} transitions in last {self._flap_threshold} observations)",
+                            tags={"interface": iface},
+                            timestamp=metric.timestamp,
+                        )
+                    )
 
             # Detect link down
             if not is_up:
-                events.append(Event(
-                    event_type="link_down",
-                    severity=Severity.CRITICAL,
-                    message=f"Interface {iface} is down",
-                    tags={"interface": iface},
-                    timestamp=metric.timestamp,
-                ))
+                events.append(
+                    Event(
+                        event_type="link_down",
+                        severity=Severity.CRITICAL,
+                        message=f"Interface {iface} is down",
+                        tags={"interface": iface},
+                        timestamp=metric.timestamp,
+                    )
+                )
 
         return events

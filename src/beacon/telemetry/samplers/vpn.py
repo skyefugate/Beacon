@@ -24,11 +24,13 @@ class VPNSampler(BaseSampler):
     async def sample(self) -> list[Metric]:
         now = self._now()
         fields = await asyncio.to_thread(self._detect)
-        return [Metric(
-            measurement="t_vpn_status",
-            fields=fields,
-            timestamp=now,
-        )]
+        return [
+            Metric(
+                measurement="t_vpn_status",
+                fields=fields,
+                timestamp=now,
+            )
+        ]
 
     def _detect(self) -> dict:
         """Detect active VPN tunnels."""
@@ -41,9 +43,7 @@ class VPNSampler(BaseSampler):
             if any(iface.startswith(p) for p in _VPN_PREFIXES):
                 # Check if interface is up and has addresses
                 if iface in stats and stats[iface].isup:
-                    has_ipv4 = any(
-                        a.family.name == "AF_INET" for a in addrs[iface]
-                    )
+                    has_ipv4 = any(a.family.name == "AF_INET" for a in addrs[iface])
                     has_traffic = (
                         iface in counters
                         and (counters[iface].bytes_sent + counters[iface].bytes_recv) > 0

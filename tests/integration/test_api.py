@@ -19,6 +19,7 @@ def client(tmp_path, monkeypatch):
 
     # Clear lru_cache'd deps
     from beacon.api import deps
+
     for fn in [
         deps.get_beacon_settings,
         deps.get_plugin_registry,
@@ -31,6 +32,7 @@ def client(tmp_path, monkeypatch):
         fn.cache_clear()
 
     from beacon.config import reset_settings
+
     reset_settings()
 
     app = create_app()
@@ -98,5 +100,5 @@ class TestEvidenceRoutes:
 class TestMetricsRoutes:
     @patch("beacon.api.routes.metrics.get_influx_storage", return_value=None)
     def test_query_without_influx(self, _mock, client):
-        resp = client.post("/metrics/query", json={"query": "from(bucket: \"test\")"})
+        resp = client.post("/metrics/query", json={"query": 'from(bucket: "test")'})
         assert resp.status_code == 503

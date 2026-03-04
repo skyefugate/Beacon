@@ -33,23 +33,27 @@ class TestBXIPerfectScore:
         assert result.color == "red"
 
     def test_all_below_threshold(self):
-        result = compute_bxi({
-            "rtt_p95_ms": 15.0,
-            "loss_pct": 0.0,
-            "dns_p95_ms": 25.0,
-            "http_p95_ms": 200.0,
-            "jitter_ms": 3.0,
-        })
+        result = compute_bxi(
+            {
+                "rtt_p95_ms": 15.0,
+                "loss_pct": 0.0,
+                "dns_p95_ms": 25.0,
+                "http_p95_ms": 200.0,
+                "jitter_ms": 3.0,
+            }
+        )
         assert result.score == 100
 
     def test_at_exact_thresholds(self):
-        result = compute_bxi({
-            "rtt_p95_ms": 20.0,
-            "loss_pct": 0.0,
-            "dns_p95_ms": 30.0,
-            "http_p95_ms": 300.0,
-            "jitter_ms": 5.0,
-        })
+        result = compute_bxi(
+            {
+                "rtt_p95_ms": 20.0,
+                "loss_pct": 0.0,
+                "dns_p95_ms": 30.0,
+                "http_p95_ms": 300.0,
+                "jitter_ms": 5.0,
+            }
+        )
         assert result.score == 100
 
 
@@ -111,24 +115,28 @@ class TestBXICombinedPenalties:
     """Multiple penalties compound."""
 
     def test_all_penalties_moderate(self):
-        result = compute_bxi({
-            "rtt_p95_ms": 45.0,    # -5
-            "loss_pct": 0.5,       # -7.5 → int(87.5) = 87
-            "dns_p95_ms": 80.0,    # -5
-            "http_p95_ms": 500.0,  # -5
-            "jitter_ms": 10.0,     # -5
-        })
+        result = compute_bxi(
+            {
+                "rtt_p95_ms": 45.0,  # -5
+                "loss_pct": 0.5,  # -7.5 → int(87.5) = 87
+                "dns_p95_ms": 80.0,  # -5
+                "http_p95_ms": 500.0,  # -5
+                "jitter_ms": 10.0,  # -5
+            }
+        )
         assert result.score == 72
 
     def test_all_max_penalties(self):
         # All capped: -30 -30 -20 -20 -15 = -115 → 0 (floor)
-        result = compute_bxi({
-            "rtt_p95_ms": 500.0,
-            "loss_pct": 10.0,
-            "dns_p95_ms": 500.0,
-            "http_p95_ms": 2000.0,
-            "jitter_ms": 50.0,
-        })
+        result = compute_bxi(
+            {
+                "rtt_p95_ms": 500.0,
+                "loss_pct": 10.0,
+                "dns_p95_ms": 500.0,
+                "http_p95_ms": 2000.0,
+                "jitter_ms": 50.0,
+            }
+        )
         assert result.score == 0
 
 
@@ -136,13 +144,15 @@ class TestBXIFloor:
     """Score never goes below 0."""
 
     def test_extreme_values(self):
-        result = compute_bxi({
-            "rtt_p95_ms": 9999.0,
-            "loss_pct": 100.0,
-            "dns_p95_ms": 9999.0,
-            "http_p95_ms": 99999.0,
-            "jitter_ms": 9999.0,
-        })
+        result = compute_bxi(
+            {
+                "rtt_p95_ms": 9999.0,
+                "loss_pct": 100.0,
+                "dns_p95_ms": 9999.0,
+                "http_p95_ms": 99999.0,
+                "jitter_ms": 9999.0,
+            }
+        )
         assert result.score == 0
         assert result.label == "Critical"
         assert result.color == "red"
@@ -151,18 +161,21 @@ class TestBXIFloor:
 class TestBXILabelBoundaries:
     """Verify label assignment at each boundary."""
 
-    @pytest.mark.parametrize("score_target,expected_label,expected_color", [
-        (100, "Excellent", "emerald"),
-        (90, "Excellent", "emerald"),
-        (89, "Good", "cyan"),
-        (70, "Good", "cyan"),
-        (69, "Fair", "amber"),
-        (50, "Fair", "amber"),
-        (49, "Poor", "orange"),
-        (30, "Poor", "orange"),
-        (29, "Critical", "red"),
-        (0, "Critical", "red"),
-    ])
+    @pytest.mark.parametrize(
+        "score_target,expected_label,expected_color",
+        [
+            (100, "Excellent", "emerald"),
+            (90, "Excellent", "emerald"),
+            (89, "Good", "cyan"),
+            (70, "Good", "cyan"),
+            (69, "Fair", "amber"),
+            (50, "Fair", "amber"),
+            (49, "Poor", "orange"),
+            (30, "Poor", "orange"),
+            (29, "Critical", "red"),
+            (0, "Critical", "red"),
+        ],
+    )
     def test_label_boundaries(self, score_target, expected_label, expected_color):
         # Reverse-engineer a metric set that produces the target score.
         # Start from a healthy baseline and add penalties.
@@ -182,16 +195,26 @@ class TestBXILabelBoundaries:
                 remaining2 = remaining - 30
                 if remaining2 <= 20:
                     dns = 30.0 + (remaining2 / 5.0) * 50.0
-                    result = compute_bxi({
-                        **_HEALTHY, "rtt_p95_ms": 200.0, "loss_pct": 5.0, "dns_p95_ms": dns,
-                    })
+                    result = compute_bxi(
+                        {
+                            **_HEALTHY,
+                            "rtt_p95_ms": 200.0,
+                            "loss_pct": 5.0,
+                            "dns_p95_ms": dns,
+                        }
+                    )
                 else:
                     remaining3 = remaining2 - 20
                     http = 300.0 + (remaining3 / 5.0) * 200.0
-                    result = compute_bxi({
-                        **_HEALTHY, "rtt_p95_ms": 200.0, "loss_pct": 5.0,
-                        "dns_p95_ms": 330.0, "http_p95_ms": http,
-                    })
+                    result = compute_bxi(
+                        {
+                            **_HEALTHY,
+                            "rtt_p95_ms": 200.0,
+                            "loss_pct": 5.0,
+                            "dns_p95_ms": 330.0,
+                            "http_p95_ms": http,
+                        }
+                    )
 
         assert result.label == expected_label
         assert result.color == expected_color

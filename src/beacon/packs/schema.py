@@ -14,10 +14,10 @@ from pydantic import BaseModel, Field
 class StepConfig(BaseModel):
     """Configuration for a single step in a pack."""
 
-    plugin: str                                    # e.g., "ping", "dns", "device"
-    type: str = "runner"                           # "collector" or "runner"
+    plugin: str  # e.g., "ping", "dns", "device"
+    type: str = "runner"  # "collector" or "runner"
     enabled: bool = True
-    privileged: bool = False                       # Runs on collector sidecar if True
+    privileged: bool = False  # Runs on collector sidecar if True
     config: dict[str, Any] = Field(default_factory=dict)
 
 

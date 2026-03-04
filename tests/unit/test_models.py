@@ -164,7 +164,9 @@ class TestHealthSnapshot:
 
     def test_minimal_health(self):
         h = HealthSnapshot(
-            cpu=CPUHealth(percent=10.0, load_avg_1m=0.5, load_avg_5m=0.4, load_avg_15m=0.3, core_count=2),
+            cpu=CPUHealth(
+                percent=10.0, load_avg_1m=0.5, load_avg_5m=0.4, load_avg_15m=0.3, core_count=2
+            ),
             memory=MemoryHealth(total_mb=4096.0, available_mb=3000.0, percent_used=26.7),
         )
         assert h.disks == []

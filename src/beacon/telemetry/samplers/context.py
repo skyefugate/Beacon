@@ -68,21 +68,25 @@ class ContextSampler(BaseSampler):
         if public_ip:
             context_fields["public_ip"] = public_ip
 
-        metrics.append(Metric(
-            measurement="t_agent_context",
-            fields=context_fields,
-            timestamp=now,
-        ))
+        metrics.append(
+            Metric(
+                measurement="t_agent_context",
+                fields=context_fields,
+                timestamp=now,
+            )
+        )
 
         # Tier 3: geo enrichment (async HTTP, heavily cached)
         if self._geo_enabled and public_ip:
             geo_fields = await self._get_geo(public_ip)
             if geo_fields:
-                metrics.append(Metric(
-                    measurement="t_network_geo",
-                    fields=geo_fields,
-                    timestamp=now,
-                ))
+                metrics.append(
+                    Metric(
+                        measurement="t_network_geo",
+                        fields=geo_fields,
+                        timestamp=now,
+                    )
+                )
 
         return metrics
 
@@ -132,7 +136,9 @@ class ContextSampler(BaseSampler):
             if system == "Darwin":
                 result = subprocess.run(
                     ["route", "-n", "get", "default"],
-                    capture_output=True, text=True, timeout=5,
+                    capture_output=True,
+                    text=True,
+                    timeout=5,
                 )
                 m = re.search(r"interface:\s*(\S+)", result.stdout)
                 if m:
@@ -140,7 +146,9 @@ class ContextSampler(BaseSampler):
             elif system == "Linux":
                 result = subprocess.run(
                     ["ip", "route", "show", "default"],
-                    capture_output=True, text=True, timeout=5,
+                    capture_output=True,
+                    text=True,
+                    timeout=5,
                 )
                 m = re.search(r"dev\s+(\S+)", result.stdout)
                 if m:
@@ -159,7 +167,9 @@ class ContextSampler(BaseSampler):
         return None
 
     def _collect_interface_details(
-        self, fields: dict[str, str | int | float | bool], iface: str,
+        self,
+        fields: dict[str, str | int | float | bool],
+        iface: str,
     ) -> None:
         """Populate interface-level fields (speed, MTU, MAC, link type)."""
         stats = psutil.net_if_stats()
@@ -188,7 +198,9 @@ class ContextSampler(BaseSampler):
             try:
                 result = subprocess.run(
                     ["networksetup", "-listallhardwareports"],
-                    capture_output=True, text=True, timeout=5,
+                    capture_output=True,
+                    text=True,
+                    timeout=5,
                 )
                 # Parse blocks like:
                 # Hardware Port: Wi-Fi
@@ -227,11 +239,11 @@ class ContextSampler(BaseSampler):
             try:
                 result = subprocess.run(
                     ["scutil", "--dns"],
-                    capture_output=True, text=True, timeout=5,
+                    capture_output=True,
+                    text=True,
+                    timeout=5,
                 )
-                servers = sorted(
-                    set(re.findall(r"nameserver\[\d+\]\s*:\s*(\S+)", result.stdout))
-                )
+                servers = sorted(set(re.findall(r"nameserver\[\d+\]\s*:\s*(\S+)", result.stdout)))
                 if servers:
                     return ",".join(servers)
             except (FileNotFoundError, OSError):
@@ -261,7 +273,9 @@ class ContextSampler(BaseSampler):
             if system == "Darwin":
                 result = subprocess.run(
                     ["route", "-n", "get", "default"],
-                    capture_output=True, text=True, timeout=5,
+                    capture_output=True,
+                    text=True,
+                    timeout=5,
                 )
                 m = re.search(r"gateway:\s*(\S+)", result.stdout)
                 if m:
@@ -269,7 +283,9 @@ class ContextSampler(BaseSampler):
             elif system == "Linux":
                 result = subprocess.run(
                     ["ip", "route", "show", "default"],
-                    capture_output=True, text=True, timeout=5,
+                    capture_output=True,
+                    text=True,
+                    timeout=5,
                 )
                 m = re.search(r"via\s+(\S+)", result.stdout)
                 if m:
@@ -281,10 +297,7 @@ class ContextSampler(BaseSampler):
     async def _get_public_ip(self) -> str | None:
         """Fetch public IP with TTL caching."""
         now = time.monotonic()
-        if (
-            self._cached_public_ip
-            and (now - self._public_ip_fetched_at) < self._public_ip_ttl
-        ):
+        if self._cached_public_ip and (now - self._public_ip_fetched_at) < self._public_ip_ttl:
             return self._cached_public_ip
 
         try:

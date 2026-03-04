@@ -104,11 +104,13 @@ def _build_scheduler(settings: BeaconSettings) -> TelemetryScheduler:
     if ts.export_influx_enabled:
         exporters.append(InfluxExporter(settings, buffer))
     if ts.export_file_enabled:
-        exporters.append(FileExporter(
-            path=ts.export_file_path,
-            max_mb=ts.export_file_max_mb,
-            max_files=ts.export_file_max_files,
-        ))
+        exporters.append(
+            FileExporter(
+                path=ts.export_file_path,
+                max_mb=ts.export_file_max_mb,
+                max_files=ts.export_file_max_files,
+            )
+        )
 
     return TelemetryScheduler(settings, samplers, buffer, exporters)
 

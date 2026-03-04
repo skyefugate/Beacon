@@ -111,9 +111,7 @@ class TestChangeDetector:
         with patch("beacon.telemetry.samplers.change.Path") as MockPath:
             mock_file = MagicMock()
             mock_file.read_text.return_value = (
-                "# Generated\n"
-                "nameserver 8.8.8.8\n"
-                "nameserver 1.1.1.1\n"
+                "# Generated\nnameserver 8.8.8.8\nnameserver 1.1.1.1\n"
             )
             MockPath.return_value = mock_file
             result = detector._get_dns_servers()

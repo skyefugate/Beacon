@@ -29,13 +29,15 @@ def list_evidence():
     for run_id in runs:
         pack = store.load(run_id)
         if pack:
-            rows.append([
-                str(run_id)[:12] + "...",
-                pack.pack_name,
-                pack.fault_domain.fault_domain.value,
-                f"{pack.fault_domain.confidence:.0%}",
-                pack.completed_at.isoformat()[:19],
-            ])
+            rows.append(
+                [
+                    str(run_id)[:12] + "...",
+                    pack.pack_name,
+                    pack.fault_domain.fault_domain.value,
+                    f"{pack.fault_domain.confidence:.0%}",
+                    pack.completed_at.isoformat()[:19],
+                ]
+            )
 
     print_table(
         "Evidence Packs",

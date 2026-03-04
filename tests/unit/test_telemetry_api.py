@@ -78,7 +78,9 @@ class TestOverviewEndpoint:
 
         app = create_app()
         with (
-            patch("beacon.api.routes.telemetry_api.get_beacon_settings", return_value=mock_settings),
+            patch(
+                "beacon.api.routes.telemetry_api.get_beacon_settings", return_value=mock_settings
+            ),
             patch("beacon.api.routes.telemetry_api.get_influx_storage", return_value=mock_influx),
         ):
             client = TestClient(app)
@@ -116,7 +118,9 @@ class TestOverviewEndpoint:
 
         app = create_app()
         with (
-            patch("beacon.api.routes.telemetry_api.get_beacon_settings", return_value=mock_settings),
+            patch(
+                "beacon.api.routes.telemetry_api.get_beacon_settings", return_value=mock_settings
+            ),
             patch("beacon.api.routes.telemetry_api.get_influx_storage", return_value=mock_influx),
         ):
             client = TestClient(app)
@@ -138,7 +142,9 @@ class TestOverviewEndpoint:
 
         app = create_app()
         with (
-            patch("beacon.api.routes.telemetry_api.get_beacon_settings", return_value=mock_settings),
+            patch(
+                "beacon.api.routes.telemetry_api.get_beacon_settings", return_value=mock_settings
+            ),
             patch("beacon.api.routes.telemetry_api.get_influx_storage", return_value=mock_influx),
         ):
             client = TestClient(app)
@@ -169,7 +175,9 @@ class TestSeriesEndpoint:
 
         app = create_app()
         with (
-            patch("beacon.api.routes.telemetry_api.get_beacon_settings", return_value=mock_settings),
+            patch(
+                "beacon.api.routes.telemetry_api.get_beacon_settings", return_value=mock_settings
+            ),
             patch("beacon.api.routes.telemetry_api.get_influx_storage", return_value=mock_influx),
         ):
             client = TestClient(app)
@@ -211,7 +219,9 @@ class TestSeriesEndpoint:
     def test_series_influx_unavailable(self, mock_settings):
         app = create_app()
         with (
-            patch("beacon.api.routes.telemetry_api.get_beacon_settings", return_value=mock_settings),
+            patch(
+                "beacon.api.routes.telemetry_api.get_beacon_settings", return_value=mock_settings
+            ),
             patch("beacon.api.routes.telemetry_api.get_influx_storage", return_value=None),
         ):
             client = TestClient(app)
@@ -227,7 +237,9 @@ class TestSeriesEndpoint:
 
         app = create_app()
         with (
-            patch("beacon.api.routes.telemetry_api.get_beacon_settings", return_value=mock_settings),
+            patch(
+                "beacon.api.routes.telemetry_api.get_beacon_settings", return_value=mock_settings
+            ),
             patch("beacon.api.routes.telemetry_api.get_influx_storage", return_value=mock_influx),
         ):
             client = TestClient(app)
@@ -255,7 +267,9 @@ class TestSparklinesEndpoint:
 
         app = create_app()
         with (
-            patch("beacon.api.routes.telemetry_api.get_beacon_settings", return_value=mock_settings),
+            patch(
+                "beacon.api.routes.telemetry_api.get_beacon_settings", return_value=mock_settings
+            ),
             patch("beacon.api.routes.telemetry_api.get_influx_storage", return_value=mock_influx),
         ):
             client = TestClient(app)
@@ -264,7 +278,14 @@ class TestSparklinesEndpoint:
         assert resp.status_code == 200
         data = resp.json()
         assert "sparklines" in data
-        expected_keys = {"internet_rtt", "dns_latency", "http_timing", "packet_loss", "cpu", "memory"}
+        expected_keys = {
+            "internet_rtt",
+            "dns_latency",
+            "http_timing",
+            "packet_loss",
+            "cpu",
+            "memory",
+        }
         assert set(data["sparklines"].keys()) == expected_keys
         assert data["range"] == "1h"
         assert data["window_seconds"] > 0
@@ -283,7 +304,9 @@ class TestSparklinesEndpoint:
 
         app = create_app()
         with (
-            patch("beacon.api.routes.telemetry_api.get_beacon_settings", return_value=mock_settings),
+            patch(
+                "beacon.api.routes.telemetry_api.get_beacon_settings", return_value=mock_settings
+            ),
             patch("beacon.api.routes.telemetry_api.get_influx_storage", return_value=mock_influx),
         ):
             client = TestClient(app)

@@ -36,16 +36,16 @@ class TestWiFiSampler:
 
         mock_asyncio.create_subprocess_exec = AsyncMock(return_value=proc)
         mock_asyncio.subprocess = asyncio.subprocess
-        mock_asyncio.wait_for = AsyncMock(
-            return_value=(airport_output.encode(), b"")
-        )
+        mock_asyncio.wait_for = AsyncMock(return_value=(airport_output.encode(), b""))
 
         # Directly test the parser reuse
         from beacon.collectors.wifi import WiFiCollector
+
         fields = WiFiCollector._parse_airport(airport_output)
         assert fields["rssi_dbm"] == -55
         assert fields["noise_dbm"] == -90
         assert fields["ssid"] == "TestNetwork"
+
 
 class TestPingSampler:
     @pytest.mark.asyncio
@@ -117,6 +117,7 @@ class TestDNSSampler:
     @patch("beacon.telemetry.samplers.dns.dns.resolver.Resolver")
     async def test_dns_failure(self, MockResolver):
         import dns.exception
+
         mock_res = MagicMock()
         MockResolver.return_value = mock_res
         mock_res.resolve.side_effect = dns.exception.Timeout()

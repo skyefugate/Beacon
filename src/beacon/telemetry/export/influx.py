@@ -91,7 +91,8 @@ class InfluxExporter(BaseExporter):
         except Exception as e:
             logger.warning(
                 "InfluxDB buffer flush failed (attempt %d): %s",
-                self._consecutive_failures + 1, e,
+                self._consecutive_failures + 1,
+                e,
             )
             self._consecutive_failures += 1
             self.total_failures += 1

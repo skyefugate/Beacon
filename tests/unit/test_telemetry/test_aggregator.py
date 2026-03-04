@@ -80,20 +80,26 @@ class TestWindowAggregator:
 
     def test_separate_series_by_tags(self):
         agg = WindowAggregator(window_seconds=60)
-        agg.push([
-            _make_metric("t_ping", "rtt_ms", 10.0, target="8.8.8.8"),
-            _make_metric("t_ping", "rtt_ms", 20.0, target="1.1.1.1"),
-        ])
+        agg.push(
+            [
+                _make_metric("t_ping", "rtt_ms", 10.0, target="8.8.8.8"),
+                _make_metric("t_ping", "rtt_ms", 20.0, target="1.1.1.1"),
+            ]
+        )
         windows = agg.flush()
         assert len(windows) == 2
 
     def test_non_numeric_fields_ignored(self):
         agg = WindowAggregator(window_seconds=60)
-        agg.push([Metric(
-            measurement="t_ping",
-            fields={"target": "8.8.8.8", "rtt_ms": 10.0},
-            timestamp=datetime.now(timezone.utc),
-        )])
+        agg.push(
+            [
+                Metric(
+                    measurement="t_ping",
+                    fields={"target": "8.8.8.8", "rtt_ms": 10.0},
+                    timestamp=datetime.now(timezone.utc),
+                )
+            ]
+        )
         windows = agg.flush()
         # Only rtt_ms should be aggregated (not the string field)
         assert len(windows) == 1
@@ -107,11 +113,15 @@ class TestWindowAggregator:
 
     def test_multiple_fields_per_metric(self):
         agg = WindowAggregator(window_seconds=60)
-        agg.push([Metric(
-            measurement="t_device",
-            fields={"cpu_percent": 25.0, "memory_percent": 60.0},
-            timestamp=datetime.now(timezone.utc),
-        )])
+        agg.push(
+            [
+                Metric(
+                    measurement="t_device",
+                    fields={"cpu_percent": 25.0, "memory_percent": 60.0},
+                    timestamp=datetime.now(timezone.utc),
+                )
+            ]
+        )
         windows = agg.flush()
         assert len(windows) == 2
         field_names = {w.field_name for w in windows}

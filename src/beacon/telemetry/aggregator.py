@@ -97,29 +97,31 @@ class WindowAggregator:
                     abs(window_values[i] - window_values[i - 1])
                     for i in range(1, len(window_values))
                 ]
-                jitter = statistics.stdev(diffs) if len(diffs) >= 2 else (
-                    diffs[0] if diffs else 0.0
+                jitter = (
+                    statistics.stdev(diffs) if len(diffs) >= 2 else (diffs[0] if diffs else 0.0)
                 )
             else:
                 p50 = p95 = p99 = window_values[0]
                 jitter = 0.0
 
             tags = dict(tags_key)
-            results.append(AggregatedWindow(
-                measurement=measurement,
-                tags=tags,
-                field_name=field_name,
-                count=count,
-                mean=round(mean, 4),
-                min=round(lo, 4),
-                max=round(hi, 4),
-                p50=round(p50, 4),
-                p95=round(p95, 4),
-                p99=round(p99, 4),
-                jitter=round(jitter, 4),
-                window_start=datetime.fromtimestamp(window_start_ts, tz=timezone.utc),
-                window_end=now,
-            ))
+            results.append(
+                AggregatedWindow(
+                    measurement=measurement,
+                    tags=tags,
+                    field_name=field_name,
+                    count=count,
+                    mean=round(mean, 4),
+                    min=round(lo, 4),
+                    max=round(hi, 4),
+                    p50=round(p50, 4),
+                    p95=round(p95, 4),
+                    p99=round(p99, 4),
+                    jitter=round(jitter, 4),
+                    window_start=datetime.fromtimestamp(window_start_ts, tz=timezone.utc),
+                    window_end=now,
+                )
+            )
 
         return results
 

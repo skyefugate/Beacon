@@ -126,8 +126,7 @@ class SQLiteBuffer:
     def _compact_sync(self) -> int:
         assert self._conn is not None
         cursor = self._conn.execute(
-            "DELETE FROM telemetry_points WHERE exported = 1 "
-            "AND created_at < datetime('now', ?)",
+            "DELETE FROM telemetry_points WHERE exported = 1 AND created_at < datetime('now', ?)",
             (f"-{self._retention_days} days",),
         )
         self._conn.commit()
@@ -151,9 +150,7 @@ class SQLiteBuffer:
 
     def _count_unexported_sync(self) -> int:
         assert self._conn is not None
-        cursor = self._conn.execute(
-            "SELECT COUNT(*) FROM telemetry_points WHERE exported = 0"
-        )
+        cursor = self._conn.execute("SELECT COUNT(*) FROM telemetry_points WHERE exported = 0")
         return cursor.fetchone()[0]
 
     def __enter__(self):

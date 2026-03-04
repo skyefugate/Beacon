@@ -42,17 +42,21 @@ class BufferbloatSampler(BaseSampler):
         if not fields:
             return []
 
-        return [Metric(
-            measurement="t_bufferbloat",
-            fields=fields,
-            timestamp=now,
-        )]
+        return [
+            Metric(
+                measurement="t_bufferbloat",
+                fields=fields,
+                timestamp=now,
+            )
+        ]
 
     async def _run_network_quality(self) -> dict:
         """Run macOS networkQuality in sequential mode with JSON output."""
         try:
             proc = await asyncio.create_subprocess_exec(
-                "networkQuality", "-s", "-c",
+                "networkQuality",
+                "-s",
+                "-c",
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE,
             )
@@ -70,7 +74,12 @@ class BufferbloatSampler(BaseSampler):
             return {}
         try:
             proc = await asyncio.create_subprocess_exec(
-                "iperf3", "-c", self._iperf3_server, "-t", "5", "-J",
+                "iperf3",
+                "-c",
+                self._iperf3_server,
+                "-t",
+                "5",
+                "-J",
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE,
             )
@@ -124,13 +133,9 @@ class BufferbloatSampler(BaseSampler):
 
             fields: dict = {}
             if sum_sent.get("bits_per_second"):
-                fields["ul_throughput_mbps"] = round(
-                    sum_sent["bits_per_second"] / 1_000_000, 2
-                )
+                fields["ul_throughput_mbps"] = round(sum_sent["bits_per_second"] / 1_000_000, 2)
             if sum_recv.get("bits_per_second"):
-                fields["dl_throughput_mbps"] = round(
-                    sum_recv["bits_per_second"] / 1_000_000, 2
-                )
+                fields["dl_throughput_mbps"] = round(sum_recv["bits_per_second"] / 1_000_000, 2)
 
             # Jitter if available
             if "jitter_ms" in sum_sent:

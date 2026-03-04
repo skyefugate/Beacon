@@ -158,23 +158,38 @@ class BeaconSettings(BaseSettings):
         storage_yaml = yaml_data.get("storage", {})
         telemetry_yaml = yaml_data.get("telemetry", {})
 
-        influx = InfluxDBSettings(**{
-            k: v for k, v in influx_yaml.items()
-            if k in InfluxDBSettings.model_fields and os.environ.get(f"INFLUXDB_{k.upper()}") is None
-        })
-        collector = CollectorSettings(**{
-            k: v for k, v in collector_yaml.items()
-            if k in CollectorSettings.model_fields and os.environ.get(f"COLLECTOR_{k.upper()}") is None
-        })
-        storage = StorageSettings(**{
-            k: v for k, v in storage_yaml.items()
-            if k in StorageSettings.model_fields and os.environ.get(f"BEACON_{k.upper()}") is None
-        })
-        telemetry = TelemetrySettings(**{
-            k: v for k, v in telemetry_yaml.items()
-            if k in TelemetrySettings.model_fields
-            and os.environ.get(f"BEACON_TELEMETRY_{k.upper()}") is None
-        })
+        influx = InfluxDBSettings(
+            **{
+                k: v
+                for k, v in influx_yaml.items()
+                if k in InfluxDBSettings.model_fields
+                and os.environ.get(f"INFLUXDB_{k.upper()}") is None
+            }
+        )
+        collector = CollectorSettings(
+            **{
+                k: v
+                for k, v in collector_yaml.items()
+                if k in CollectorSettings.model_fields
+                and os.environ.get(f"COLLECTOR_{k.upper()}") is None
+            }
+        )
+        storage = StorageSettings(
+            **{
+                k: v
+                for k, v in storage_yaml.items()
+                if k in StorageSettings.model_fields
+                and os.environ.get(f"BEACON_{k.upper()}") is None
+            }
+        )
+        telemetry = TelemetrySettings(
+            **{
+                k: v
+                for k, v in telemetry_yaml.items()
+                if k in TelemetrySettings.model_fields
+                and os.environ.get(f"BEACON_TELEMETRY_{k.upper()}") is None
+            }
+        )
 
         top_kwargs: dict[str, Any] = {}
         for key in ("host", "port", "log_level", "probe_id"):

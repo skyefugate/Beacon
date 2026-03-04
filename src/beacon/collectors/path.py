@@ -25,7 +25,9 @@ def _detect_gateway() -> str | None:
         if system == "Darwin":
             result = subprocess.run(
                 ["route", "-n", "get", "default"],
-                capture_output=True, text=True, timeout=5,
+                capture_output=True,
+                text=True,
+                timeout=5,
             )
             for line in result.stdout.splitlines():
                 if "gateway:" in line:
@@ -33,7 +35,9 @@ def _detect_gateway() -> str | None:
         elif system == "Linux":
             result = subprocess.run(
                 ["ip", "route", "show", "default"],
-                capture_output=True, text=True, timeout=5,
+                capture_output=True,
+                text=True,
+                timeout=5,
             )
             parts = result.stdout.strip().split()
             if "via" in parts:
@@ -74,7 +78,9 @@ class PathCollector(BaseCollector):
             count_flag = "-c" if system != "Windows" else "-n"
             result = subprocess.run(
                 ["ping", count_flag, "5", "-W", "2", gateway],
-                capture_output=True, text=True, timeout=15,
+                capture_output=True,
+                text=True,
+                timeout=15,
             )
 
             # Parse ping output for stats
@@ -97,31 +103,37 @@ class PathCollector(BaseCollector):
                 fields["rtt_avg_ms"] = float(rtt_match.group(2))
                 fields["rtt_max_ms"] = float(rtt_match.group(3))
 
-            metrics.append(Metric(
-                measurement="path_gateway",
-                fields=fields,
-                tags={"gateway": gateway},
-                timestamp=now,
-            ))
-
-            if result.returncode != 0:
-                events.append(Event(
-                    event_type="gateway_unreachable",
-                    severity=Severity.CRITICAL,
-                    message=f"Default gateway {gateway} is unreachable",
+            metrics.append(
+                Metric(
+                    measurement="path_gateway",
+                    fields=fields,
                     tags={"gateway": gateway},
                     timestamp=now,
-                ))
+                )
+            )
+
+            if result.returncode != 0:
+                events.append(
+                    Event(
+                        event_type="gateway_unreachable",
+                        severity=Severity.CRITICAL,
+                        message=f"Default gateway {gateway} is unreachable",
+                        tags={"gateway": gateway},
+                        timestamp=now,
+                    )
+                )
 
         except subprocess.TimeoutExpired:
             notes.append(f"Ping to gateway {gateway} timed out")
-            events.append(Event(
-                event_type="gateway_timeout",
-                severity=Severity.CRITICAL,
-                message=f"Ping to gateway {gateway} timed out",
-                tags={"gateway": gateway},
-                timestamp=now,
-            ))
+            events.append(
+                Event(
+                    event_type="gateway_timeout",
+                    severity=Severity.CRITICAL,
+                    message=f"Ping to gateway {gateway} timed out",
+                    tags={"gateway": gateway},
+                    timestamp=now,
+                )
+            )
         except Exception as e:
             notes.append(f"Gateway ping failed: {e}")
 

@@ -31,9 +31,7 @@ class ConfidenceScorer:
     def __init__(self, proximity_bias: float = PROXIMITY_BIAS) -> None:
         self._proximity_bias = proximity_bias
 
-    def score(
-        self, matches: list[SignalMatch], total_metrics: int = 0
-    ) -> FaultDomainResult:
+    def score(self, matches: list[SignalMatch], total_metrics: int = 0) -> FaultDomainResult:
         """Compute confidence scores for each fault domain and return the result."""
         if not matches:
             return FaultDomainResult(
@@ -70,19 +68,19 @@ class ConfidenceScorer:
             domain_scores[domain] = min(domain_scores[domain], 1.0)
 
         # Find the winner
-        sorted_domains = sorted(
-            domain_scores.items(), key=lambda x: x[1], reverse=True
-        )
+        sorted_domains = sorted(domain_scores.items(), key=lambda x: x[1], reverse=True)
         winner_domain, winner_confidence = sorted_domains[0]
 
         # Build competing hypotheses from the rest
         hypotheses: list[CompetingHypothesis] = []
         for domain, conf in sorted_domains[1:]:
-            hypotheses.append(CompetingHypothesis(
-                fault_domain=domain,
-                confidence=round(conf, 4),
-                reasoning=f"Scored {conf:.2f} based on {len(domain_evidence.get(domain, []))} signals",
-            ))
+            hypotheses.append(
+                CompetingHypothesis(
+                    fault_domain=domain,
+                    confidence=round(conf, 4),
+                    reasoning=f"Scored {conf:.2f} based on {len(domain_evidence.get(domain, []))} signals",
+                )
+            )
 
         return FaultDomainResult(
             fault_domain=winner_domain,

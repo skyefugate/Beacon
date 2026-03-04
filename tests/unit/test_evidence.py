@@ -19,18 +19,24 @@ def _now():
 class TestBuildManifest:
     def test_collects_all_artifacts(self):
         env1 = PluginEnvelope(
-            plugin_name="a", plugin_version="0.1.0", run_id=uuid4(),
+            plugin_name="a",
+            plugin_version="0.1.0",
+            run_id=uuid4(),
             artifacts=[
                 Artifact(artifact_type="pcap", ref="/a.pcap", sha256="aaa"),
             ],
-            started_at=_now(), completed_at=_now(),
+            started_at=_now(),
+            completed_at=_now(),
         )
         env2 = PluginEnvelope(
-            plugin_name="b", plugin_version="0.1.0", run_id=uuid4(),
+            plugin_name="b",
+            plugin_version="0.1.0",
+            run_id=uuid4(),
             artifacts=[
                 Artifact(artifact_type="log", ref="/b.log", sha256="bbb"),
             ],
-            started_at=_now(), completed_at=_now(),
+            started_at=_now(),
+            completed_at=_now(),
         )
 
         manifest = build_manifest([env1, env2])
@@ -38,12 +44,15 @@ class TestBuildManifest:
 
     def test_deduplicates_by_sha256(self):
         env = PluginEnvelope(
-            plugin_name="a", plugin_version="0.1.0", run_id=uuid4(),
+            plugin_name="a",
+            plugin_version="0.1.0",
+            run_id=uuid4(),
             artifacts=[
                 Artifact(artifact_type="pcap", ref="/a.pcap", sha256="same"),
                 Artifact(artifact_type="pcap", ref="/b.pcap", sha256="same"),
             ],
-            started_at=_now(), completed_at=_now(),
+            started_at=_now(),
+            completed_at=_now(),
         )
 
         manifest = build_manifest([env])
@@ -51,8 +60,11 @@ class TestBuildManifest:
 
     def test_empty_envelopes(self):
         env = PluginEnvelope(
-            plugin_name="a", plugin_version="0.1.0", run_id=uuid4(),
-            started_at=_now(), completed_at=_now(),
+            plugin_name="a",
+            plugin_version="0.1.0",
+            run_id=uuid4(),
+            started_at=_now(),
+            completed_at=_now(),
         )
         assert build_manifest([env]) == []
 
@@ -76,23 +88,29 @@ class TestCaptureHealth:
 
 class TestEvidencePackBuilder:
     def test_builds_complete_pack(self):
-        with patch("beacon.evidence.builder.capture_environment") as mock_env, \
-             patch("beacon.evidence.builder._capture_health") as mock_health:
-
+        with (
+            patch("beacon.evidence.builder.capture_environment") as mock_env,
+            patch("beacon.evidence.builder._capture_health") as mock_health,
+        ):
             from beacon.models.evidence import EnvironmentSnapshot
             from beacon.models.health import CPUHealth, HealthSnapshot, MemoryHealth
 
             mock_env.return_value = EnvironmentSnapshot(
-                hostname="test", os="Linux", os_version="6.1",
-                architecture="x86_64", python_version="3.11.0",
+                hostname="test",
+                os="Linux",
+                os_version="6.1",
+                architecture="x86_64",
+                python_version="3.11.0",
             )
             mock_health.return_value = HealthSnapshot(
-                cpu=CPUHealth(percent=25.0, load_avg_1m=1.0, load_avg_5m=0.8,
-                              load_avg_15m=0.6, core_count=4),
+                cpu=CPUHealth(
+                    percent=25.0, load_avg_1m=1.0, load_avg_5m=0.8, load_avg_15m=0.6, core_count=4
+                ),
                 memory=MemoryHealth(total_mb=8192, available_mb=4096, percent_used=50.0),
             )
 
             from beacon.config import BeaconSettings
+
             settings = BeaconSettings()
 
             builder = EvidencePackBuilder(settings)
@@ -101,12 +119,19 @@ class TestEvidencePackBuilder:
 
             envelopes = [
                 PluginEnvelope(
-                    plugin_name="ping", plugin_version="0.1.0", run_id=run_id,
+                    plugin_name="ping",
+                    plugin_version="0.1.0",
+                    run_id=run_id,
                     metrics=[
-                        Metric(measurement="ping", fields={"loss_pct": 0.0, "rtt_avg_ms": 15.0},
-                               tags={"target": "8.8.8.8"}, timestamp=started_at),
+                        Metric(
+                            measurement="ping",
+                            fields={"loss_pct": 0.0, "rtt_avg_ms": 15.0},
+                            tags={"target": "8.8.8.8"},
+                            timestamp=started_at,
+                        ),
                     ],
-                    started_at=started_at, completed_at=_now(),
+                    started_at=started_at,
+                    completed_at=_now(),
                 ),
             ]
 
