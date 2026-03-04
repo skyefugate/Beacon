@@ -15,6 +15,7 @@ from beacon.config import BeaconSettings
 from beacon.models.envelope import Metric
 from beacon.telemetry.aggregator import WindowAggregator
 from beacon.telemetry.buffer import SQLiteBuffer
+from beacon.telemetry.escalation import EscalationAction
 from beacon.telemetry.export.base import BaseExporter
 from beacon.telemetry.sampler import BaseSampler
 
@@ -134,6 +135,37 @@ class TelemetryScheduler:
         """Remove a sampler by name (used by escalation to disable tiers)."""
         self._samplers = [s for s in self._samplers if s.name != name]
         # The task will exit on next iteration when it checks _running
+
+    def apply_actions(self, actions: list[EscalationAction]) -> None:
+        """Apply a list of escalation actions returned by the escalation engine."""
+        for action in actions:
+            if action == EscalationAction.TRIGGER_PACK:
+                asyncio.create_task(self._trigger_pack())
+
+    async def _trigger_pack(self) -> None:
+        """Fire-and-forget pack run triggered by escalation reaching ACTIVE state."""
+        pack_name = getattr(
+            getattr(self._settings, "telemetry", None),
+            "escalation_pack",
+            "quick_health",
+        )
+        try:
+            from beacon.packs.loader import PackLoader
+            from beacon.packs.executor import PackExecutor
+            from beacon.packs.registry import PluginRegistry
+            import pathlib
+
+            packs_dir = pathlib.Path(__file__).parent.parent.parent.parent / "packs"
+            pack_path = packs_dir / f"{pack_name}.yaml"
+
+            loop = asyncio.get_event_loop()
+            pack = await loop.run_in_executor(None, PackLoader.load_file, pack_path)
+            registry = PluginRegistry()
+            executor = PackExecutor(plugin_registry=registry)
+            await loop.run_in_executor(None, executor.execute, pack)
+            logger.info("Escalation pack '%s' completed", pack_name)
+        except Exception as exc:
+            logger.warning("Escalation pack '%s' failed: %s", pack_name, exc)
 
     async def _sampler_loop(self, sampler: BaseSampler) -> None:
         """Repeatedly sample at the configured interval."""
