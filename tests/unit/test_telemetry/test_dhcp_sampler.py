@@ -191,13 +191,10 @@ class TestLinuxLeaseFileParsing:
 
     def test_parses_dhcpcd_format_with_acquired_time(self):
         import time
+
         now = int(time.time())
         acquired = now - 1800
-        lease_content = (
-            "lease_time=3600\n"
-            "ip_address=172.16.0.20\n"
-            f"acquired={acquired}\n"
-        )
+        lease_content = f"lease_time=3600\nip_address=172.16.0.20\nacquired={acquired}\n"
         fields = DhcpSampler._parse_linux_lease_file(lease_content)
         assert fields["has_valid_lease"] == 1
         assert fields["ip_address"] == "172.16.0.20"

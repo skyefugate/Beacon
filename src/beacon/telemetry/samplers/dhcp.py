@@ -147,7 +147,9 @@ class DhcpSampler(BaseSampler):
             lease_age = 0
             lease_remaining = lease_time
 
-        lease_remaining_pct = round((lease_remaining / lease_time) * 100, 1) if lease_time > 0 else 0.0
+        lease_remaining_pct = (
+            round((lease_remaining / lease_time) * 100, 1) if lease_time > 0 else 0.0
+        )
 
         fields["lease_age_seconds"] = lease_age
         fields["lease_remaining_pct"] = lease_remaining_pct
