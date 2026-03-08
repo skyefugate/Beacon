@@ -174,7 +174,6 @@ class TelemetryScheduler:
         except Exception as exc:
             logger.warning("Escalation pack '%s' failed: %s", pack_name, exc)
 
-
     async def _emit_sleep_wake_gap(
         self, sampler_name: str, gap_seconds: float, expected_interval: float
     ) -> None:

@@ -25,7 +25,9 @@ class TestDaemon:
         scheduler = _build_scheduler(settings)
 
         assert scheduler is not None
-        assert len(scheduler._samplers) == 9  # wifi, tcp, nic, ping, dns, http, device, context, change
+        assert (
+            len(scheduler._samplers) == 9
+        )  # wifi, tcp, nic, ping, dns, http, device, context, change
 
     def test_build_scheduler_with_influx(self):
         settings = BeaconSettings()

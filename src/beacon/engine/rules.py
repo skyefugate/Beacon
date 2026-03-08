@@ -295,7 +295,6 @@ class HeuristicRuleSet:
                         )
                     )
 
-
         # Disk I/O signals (t_disk_io measurement from DiskSampler)
         if m == "t_disk_io":
             latency_ms = f.get("latency_ms")

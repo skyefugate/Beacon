@@ -105,8 +105,6 @@ class TestHeuristicRuleSet:
         matches = rules.evaluate([envelope])
         assert any(m.signal.name == "gateway_unreachable" for m in matches)
 
-
-
     def test_matches_high_disk_latency(self):
         envelope = _make_envelope(
             "disk",
@@ -179,12 +177,17 @@ class TestHeuristicRuleSet:
         )
         rules = HeuristicRuleSet()
         matches = rules.evaluate([envelope])
-        disk_matches = [m for m in matches if m.signal.name in ("high_disk_latency", "disk_full", "high_disk_io")]
+        disk_matches = [
+            m
+            for m in matches
+            if m.signal.name in ("high_disk_latency", "disk_full", "high_disk_io")
+        ]
         assert len(disk_matches) == 0
 
     def test_disk_signals_contribute_to_device_domain(self):
         """Disk signals should push the fault domain engine toward DEVICE."""
         from beacon.engine.fault_domain import FaultDomainEngine
+
         now = _now()
         envelopes = [
             _make_envelope(
@@ -209,6 +212,7 @@ class TestHeuristicRuleSet:
         result, _ = engine.analyze(envelopes)
         assert result.fault_domain == FaultDomain.DEVICE
         assert result.confidence > 0.0
+
 
 class TestEventCorrelator:
     def test_correlates_nearby_events_and_metrics(self):
@@ -266,8 +270,6 @@ class TestEventCorrelator:
         if correlations:
             assert len(correlations[0].correlated_metrics) == 0
 
-
-
     def test_correlates_events_30s_apart(self):
         """Events 30 s apart must correlate with the new 45 s default window."""
         now = _now()
@@ -295,6 +297,7 @@ class TestEventCorrelator:
         correlations = correlator.correlate([envelope])
         assert len(correlations) >= 1, "30 s gap should correlate within 45 s window"
         assert len(correlations[0].correlated_metrics) >= 1
+
 
 class TestConfidenceScorer:
     def test_single_domain_scores_high(self):

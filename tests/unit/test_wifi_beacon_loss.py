@@ -6,7 +6,6 @@ in the t_wifi_link measurement as beacon_lost_count.
 
 from __future__ import annotations
 
-import asyncio
 from unittest.mock import AsyncMock, MagicMock, patch
 from uuid import uuid4
 
@@ -17,17 +16,25 @@ from beacon.telemetry.samplers.wifi import WiFiSampler
 
 
 AIRPORT_OUTPUT_WITH_BEACON_LOSS = (
-    "     agrCtlRSSI: -55" + chr(10) +
-    "     agrCtlNoise: -90" + chr(10) +
-    "     channel: 149" + chr(10) +
-    "     SSID: TestNetwork" + chr(10) +
-    "     beaconLostCount: 12" + chr(10)
+    "     agrCtlRSSI: -55"
+    + chr(10)
+    + "     agrCtlNoise: -90"
+    + chr(10)
+    + "     channel: 149"
+    + chr(10)
+    + "     SSID: TestNetwork"
+    + chr(10)
+    + "     beaconLostCount: 12"
+    + chr(10)
 )
 
 AIRPORT_OUTPUT_WITHOUT_BEACON_LOSS = (
-    "     agrCtlRSSI: -55" + chr(10) +
-    "     agrCtlNoise: -90" + chr(10) +
-    "     SSID: TestNetwork" + chr(10)
+    "     agrCtlRSSI: -55"
+    + chr(10)
+    + "     agrCtlNoise: -90"
+    + chr(10)
+    + "     SSID: TestNetwork"
+    + chr(10)
 )
 
 
@@ -60,13 +67,20 @@ class TestParseAirportBeaconLostCount:
         """beaconLostCount coexists with all other airport -I fields."""
         nl = chr(10)
         output = (
-            "     agrCtlRSSI: -55" + nl +
-            "     agrCtlNoise: -90" + nl +
-            "     channel: 36" + nl +
-            "     lastAssocStatus: 0" + nl +
-            "     SSID: HomeWiFi" + nl +
-            "     BSSID: aa:bb:cc:dd:ee:ff" + nl +
-            "     beaconLostCount: 7" + nl
+            "     agrCtlRSSI: -55"
+            + nl
+            + "     agrCtlNoise: -90"
+            + nl
+            + "     channel: 36"
+            + nl
+            + "     lastAssocStatus: 0"
+            + nl
+            + "     SSID: HomeWiFi"
+            + nl
+            + "     BSSID: aa:bb:cc:dd:ee:ff"
+            + nl
+            + "     beaconLostCount: 7"
+            + nl
         )
         fields = WiFiCollector._parse_airport(output)
         assert fields["rssi_dbm"] == -55
@@ -85,11 +99,16 @@ class TestWiFiCollectorBeaconLostCount:
         """beacon_lost_count appears in wifi_link metric when airport reports it."""
         nl = chr(10)
         stdout = (
-            "     agrCtlRSSI: -60" + nl +
-            "     agrCtlNoise: -92" + nl +
-            "     channel: 11" + nl +
-            "     SSID: OfficeNet" + nl +
-            "     beaconLostCount: 3" + nl
+            "     agrCtlRSSI: -60"
+            + nl
+            + "     agrCtlNoise: -92"
+            + nl
+            + "     channel: 11"
+            + nl
+            + "     SSID: OfficeNet"
+            + nl
+            + "     beaconLostCount: 3"
+            + nl
         )
         with (
             patch("beacon.collectors.wifi.platform") as mock_platform,
@@ -108,9 +127,7 @@ class TestWiFiCollectorBeaconLostCount:
         """beacon_lost_count is absent from metric fields when not reported."""
         nl = chr(10)
         stdout = (
-            "     agrCtlRSSI: -65" + nl +
-            "     agrCtlNoise: -91" + nl +
-            "     SSID: HomeNet" + nl
+            "     agrCtlRSSI: -65" + nl + "     agrCtlNoise: -91" + nl + "     SSID: HomeNet" + nl
         )
         with (
             patch("beacon.collectors.wifi.platform") as mock_platform,
@@ -137,11 +154,16 @@ class TestWiFiSamplerBeaconLostCount:
         mock_platform.system.return_value = "Darwin"
         nl = chr(10)
         airport_output = (
-            "     agrCtlRSSI: -58" + nl +
-            "     agrCtlNoise: -93" + nl +
-            "     channel: 6" + nl +
-            "     SSID: MyNetwork" + nl +
-            "     beaconLostCount: 12" + nl
+            "     agrCtlRSSI: -58"
+            + nl
+            + "     agrCtlNoise: -93"
+            + nl
+            + "     channel: 6"
+            + nl
+            + "     SSID: MyNetwork"
+            + nl
+            + "     beaconLostCount: 12"
+            + nl
         )
         proc = AsyncMock()
         proc.communicate = AsyncMock(return_value=(airport_output.encode(), b""))
@@ -163,10 +185,14 @@ class TestWiFiSamplerBeaconLostCount:
         mock_platform.system.return_value = "Darwin"
         nl = chr(10)
         airport_output = (
-            "     agrCtlRSSI: -50" + nl +
-            "     agrCtlNoise: -95" + nl +
-            "     SSID: StrongSignal" + nl +
-            "     beaconLostCount: 0" + nl
+            "     agrCtlRSSI: -50"
+            + nl
+            + "     agrCtlNoise: -95"
+            + nl
+            + "     SSID: StrongSignal"
+            + nl
+            + "     beaconLostCount: 0"
+            + nl
         )
         proc = AsyncMock()
         proc.communicate = AsyncMock(return_value=(airport_output.encode(), b""))
@@ -187,10 +213,14 @@ class TestWiFiSamplerBeaconLostCount:
         mock_platform.system.return_value = "Darwin"
         nl = chr(10)
         airport_output = (
-            "     agrCtlRSSI: -60" + nl +
-            "     agrCtlNoise: -90" + nl +
-            "     SSID: TestNet" + nl +
-            "     beaconLostCount: 5" + nl
+            "     agrCtlRSSI: -60"
+            + nl
+            + "     agrCtlNoise: -90"
+            + nl
+            + "     SSID: TestNet"
+            + nl
+            + "     beaconLostCount: 5"
+            + nl
         )
         proc = AsyncMock()
         proc.communicate = AsyncMock(return_value=(airport_output.encode(), b""))

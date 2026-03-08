@@ -130,10 +130,7 @@ class TestApplyConfigReload:
         with caplog.at_level(logging.INFO, logger="beacon.telemetry.daemon"):
             apply_config_reload(scheduler, old_settings.telemetry, new_settings)
 
-        assert any(
-            "ping" in r.message and "interval" in r.message
-            for r in caplog.records
-        )
+        assert any("ping" in r.message and "interval" in r.message for r in caplog.records)
 
     def test_no_changes_no_interval_overrides(self):
         old_settings = _make_settings()
@@ -152,7 +149,4 @@ class TestApplyConfigReload:
         with caplog.at_level(logging.INFO, logger="beacon.telemetry.daemon"):
             apply_config_reload(scheduler, old_settings.telemetry, new_settings)
 
-        assert any(
-            "export_influx_bucket" in r.message
-            for r in caplog.records
-        )
+        assert any("export_influx_bucket" in r.message for r in caplog.records)

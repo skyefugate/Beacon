@@ -13,19 +13,39 @@ from beacon.telemetry.samplers.nic import NicSampler, _LOOPBACK_INTERFACES
 # Mimic psutil snetio named tuple
 snetio = namedtuple(
     "snetio",
-    ["bytes_sent", "bytes_recv", "packets_sent", "packets_recv",
-     "errin", "errout", "dropin", "dropout"],
+    [
+        "bytes_sent",
+        "bytes_recv",
+        "packets_sent",
+        "packets_recv",
+        "errin",
+        "errout",
+        "dropin",
+        "dropout",
+    ],
 )
 
 
 def _make_counters(
-    bytes_sent=1000, bytes_recv=5000,
-    packets_sent=10, packets_recv=50,
-    errin=0, errout=0, dropin=0, dropout=0,
+    bytes_sent=1000,
+    bytes_recv=5000,
+    packets_sent=10,
+    packets_recv=50,
+    errin=0,
+    errout=0,
+    dropin=0,
+    dropout=0,
 ):
-    return snetio(bytes_sent=bytes_sent, bytes_recv=bytes_recv,
-                  packets_sent=packets_sent, packets_recv=packets_recv,
-                  errin=errin, errout=errout, dropin=dropin, dropout=dropout)
+    return snetio(
+        bytes_sent=bytes_sent,
+        bytes_recv=bytes_recv,
+        packets_sent=packets_sent,
+        packets_recv=packets_recv,
+        errin=errin,
+        errout=errout,
+        dropin=dropin,
+        dropout=dropout,
+    )
 
 
 class TestNicSamplerMetadata:
@@ -190,10 +210,26 @@ class TestNicSamplerDeltas:
 
 class TestNicSamplerComputeFields:
     def test_compute_fields_basic(self):
-        prev = _make_counters(bytes_sent=0, bytes_recv=0, packets_sent=0, packets_recv=0,
-                              errin=0, errout=0, dropin=0, dropout=0)
-        current = _make_counters(bytes_sent=3000, bytes_recv=9000, packets_sent=30,
-                                 packets_recv=90, errin=1, errout=2, dropin=3, dropout=4)
+        prev = _make_counters(
+            bytes_sent=0,
+            bytes_recv=0,
+            packets_sent=0,
+            packets_recv=0,
+            errin=0,
+            errout=0,
+            dropin=0,
+            dropout=0,
+        )
+        current = _make_counters(
+            bytes_sent=3000,
+            bytes_recv=9000,
+            packets_sent=30,
+            packets_recv=90,
+            errin=1,
+            errout=2,
+            dropin=3,
+            dropout=4,
+        )
         fields = NicSampler._compute_fields(current, prev, elapsed=10.0)
         assert fields["bytes_sent_rate"] == 300.0
         assert fields["bytes_recv_rate"] == 900.0

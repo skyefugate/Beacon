@@ -93,8 +93,7 @@ def _check_daemon_running() -> tuple[bool, str]:
 def _check_airport_binary() -> tuple[bool, str]:
     """Check that the macOS airport binary is available."""
     airport_path = (
-        "/System/Library/PrivateFrameworks/Apple80211.framework"
-        "/Versions/Current/Resources/airport"
+        "/System/Library/PrivateFrameworks/Apple80211.framework/Versions/Current/Resources/airport"
     )
     if Path(airport_path).is_file():
         return True, f"airport binary found at {airport_path}"
@@ -155,8 +154,5 @@ def doctor(ctx: typer.Context) -> None:
     if failures == 0:
         console.print("[bold green]All checks passed.[/bold green]")
     else:
-        console.print(
-            f"[bold red]{failures} check(s) failed.[/bold red] "
-            "Review the details above."
-        )
+        console.print(f"[bold red]{failures} check(s) failed.[/bold red] Review the details above.")
         raise typer.Exit(1)

@@ -69,7 +69,10 @@ class TestCheckInfluxDBReachable:
     def test_reachable_204_as_http_error(self):
         http_err = HTTPError(
             url="http://localhost:8086/ping",
-            code=204, msg="No Content", hdrs=None, fp=None,
+            code=204,
+            msg="No Content",
+            hdrs=None,
+            fp=None,
         )
         with patch("beacon.cli.commands.doctor.urlopen", side_effect=http_err):
             ok, detail = _check_influxdb_reachable()

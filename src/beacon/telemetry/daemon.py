@@ -187,8 +187,6 @@ def _build_scheduler(settings: BeaconSettings) -> TelemetryScheduler:
     return TelemetryScheduler(settings, samplers, buffer, exporters)
 
 
-
-
 def apply_config_reload(
     scheduler: TelemetryScheduler,
     old_ts: TelemetrySettings,
@@ -263,6 +261,7 @@ def apply_config_reload(
     # Update the scheduler settings reference so export/aggregation loops see new values.
     scheduler._settings = new_settings
 
+
 async def _run_daemon(settings: BeaconSettings) -> None:
     """Main async daemon loop."""
     scheduler = _build_scheduler(settings)
@@ -292,6 +291,7 @@ async def _run_daemon(settings: BeaconSettings) -> None:
             )
             # Restore the old singleton so the daemon keeps running with prior config.
             import beacon.config as _cfg_mod
+
             _cfg_mod._settings = old_settings
             return
 

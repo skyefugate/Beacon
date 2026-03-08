@@ -209,6 +209,7 @@ class TestSleepWakeGapDetection:
         monotonic_values = [0.0, 35.0]
 
         call_idx = [0]
+
         def fake_monotonic():
             val = monotonic_values[call_idx[0]]
             call_idx[0] = min(call_idx[0] + 1, len(monotonic_values) - 1)
@@ -239,6 +240,7 @@ class TestSleepWakeGapDetection:
     def test_gap_threshold_constant(self):
         """_SLEEP_WAKE_GAP_MULTIPLIER must be 3 per the issue spec."""
         from beacon.telemetry import scheduler as sched_mod
+
         assert sched_mod._SLEEP_WAKE_GAP_MULTIPLIER == 3
 
     @pytest.mark.asyncio
