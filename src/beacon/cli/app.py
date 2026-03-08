@@ -10,6 +10,7 @@ from beacon.cli.commands.metrics import metrics_app
 from beacon.cli.commands.packs import packs_app
 from beacon.cli.commands.run import run_app
 from beacon.cli.commands.server import server_app
+from beacon.cli.commands.doctor import doctor_app
 from beacon.cli.commands.telemetry import telemetry_app
 
 app = typer.Typer(
@@ -46,3 +47,4 @@ app.add_typer(packs_app, name="packs")
 app.add_typer(evidence_app, name="evidence")
 app.add_typer(metrics_app, name="metrics")
 app.add_typer(telemetry_app, name="telemetry")
+app.add_typer(doctor_app, name="doctor")
