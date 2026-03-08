@@ -1,135 +1,47 @@
-# Contributor Covenant Code of Conduct
+# Beacon Code of Conduct
 
-## Our Pledge
+Beacon is a project about understanding networks.
+Let's not create new ones made of drama.
 
-We as members, contributors, and leaders pledge to make participation in our
-community a harassment-free experience for everyone, regardless of age, body
-size, visible or invisible disability, ethnicity, sex characteristics, gender
-identity and expression, level of experience, education, socio-economic status,
-nationality, personal appearance, race, caste, color, religion, or sexual
-identity and orientation.
+## The Short Version
 
-We pledge to act and interact in ways that contribute to an open, welcoming,
-diverse, inclusive, and healthy community.
+Be respectful.
+Challenge ideas, not people.
+Don't harass anyone.
 
-## Our Standards
+If you can't do that, you won't be welcome in this project.
 
-Examples of behavior that contributes to a positive environment for our
-community include:
+## The Slightly Longer Version
 
-* Demonstrating empathy and kindness toward other people
-* Being respectful of differing opinions, viewpoints, and experiences
-* Giving and gracefully accepting constructive feedback
-* Accepting responsibility and apologizing to those affected by our mistakes,
-  and learning from the experience
-* Focusing on what is best not just for us as individuals, but for the overall
-  community
+Beacon aims to be a welcoming place for people who enjoy solving technical problems. Discussions here may be blunt, skeptical, and full of strong opinions — that's normal and often useful in engineering.
 
-Examples of unacceptable behavior include:
+But disagreement should always be about the idea, the design, or the code, never the person.
 
-* The use of sexualized language or imagery, and sexual attention or advances of
-  any kind
-* Trolling, insulting or derogatory comments, and personal or political attacks
-* Public or private harassment
-* Publishing others' private information, such as a physical or email address,
-  without their explicit permission
-* Other conduct which could reasonably be considered inappropriate in a
-  professional setting
+Personal attacks, harassment, discriminatory behavior, or deliberate disruption of the project are not tolerated.
 
-## Enforcement Responsibilities
-
-Community leaders are responsible for clarifying and enforcing our standards of
-acceptable behavior and will take appropriate and fair corrective action in
-response to any behavior that they deem inappropriate, threatening, offensive,
-or harmful.
-
-Community leaders have the right and responsibility to remove, edit, or reject
-comments, commits, code, wiki edits, issues, and other contributions that are
-not aligned to this Code of Conduct, and will communicate reasons for moderation
-decisions when appropriate.
+If you're passionate about improving the software and respectful toward the people working on it, you'll fit right in.
 
 ## Scope
 
-This Code of Conduct applies within all community spaces, and also applies when
-an individual is officially representing the community in public spaces.
-Examples of representing our community include using an official email address,
-posting via an official social media account, or acting as an appointed
-representative at an online or offline event.
+This Code of Conduct applies to all Beacon community spaces, including:
+- GitHub issues and pull requests
+- Discussions and community chat spaces
+- Events or spaces where Beacon is represented
 
 ## Enforcement
 
-Instances of abusive, harassing, or otherwise unacceptable behavior may be
-reported to the community leaders responsible for enforcement at
-beacon-conduct@fugate.dev.
+Project maintainers may remove comments, close issues, or restrict participation from anyone whose behavior harms the community or the project.
 
-For now, the project maintainer is responsible for enforcement.
+We'd rather spend our time building tools than moderating people, so please keep it constructive.
 
-All complaints will be reviewed and investigated promptly and fairly.
+## Reporting
 
-All community leaders are obligated to respect the privacy and security of the
-reporter of any incident.
+If you experience or witness behavior that crosses the line, you can report it privately:
 
-## Enforcement Guidelines
+**beacon-conduct@fugate.dev**
 
-Community leaders will follow these Community Impact Guidelines in determining
-the consequences for any action they deem in violation of this Code of Conduct:
+Reports will be handled respectfully and as confidentially as possible.
 
-### 1. Correction
+## Acknowledgment
 
-**Community Impact**: Use of inappropriate language or other behavior deemed
-unprofessional or unwelcome in the community.
-
-**Consequence**: A private, written warning from community leaders, providing
-clarity around the nature of the violation and an explanation of why the
-behavior was inappropriate. A public apology may be requested.
-
-### 2. Warning
-
-**Community Impact**: A violation through a single incident or series of
-actions.
-
-**Consequence**: A warning with consequences for continued behavior. No
-interaction with the people involved, including unsolicited interaction with
-those enforcing the Code of Conduct, for a specified period of time. This
-includes avoiding interactions in community spaces as well as external channels
-like social media. Violating these terms may lead to a temporary or permanent
-ban.
-
-### 3. Temporary Ban
-
-**Community Impact**: A serious violation of community standards, including
-sustained inappropriate behavior.
-
-**Consequence**: A temporary ban from any sort of interaction or public
-communication with the community for a specified period of time. No public or
-private interaction with the people involved, including unsolicited interaction
-with those enforcing the Code of Conduct, is allowed during this period.
-Violating these terms may lead to a permanent ban.
-
-### 4. Permanent Ban
-
-**Community Impact**: Demonstrating a pattern of violation of community
-standards, including sustained inappropriate behavior, harassment of an
-individual, or aggression toward or disparagement of classes of individuals.
-
-**Consequence**: A permanent ban from any sort of public interaction within the
-community.
-
-## Attribution
-
-This Code of Conduct is adapted from the [Contributor Covenant][homepage],
-version 2.1, available at
-[https://www.contributor-covenant.org/version/2/1/code_of_conduct.html][v2.1].
-
-Community Impact Guidelines were inspired by
-[Mozilla's code of conduct enforcement ladder][Mozilla CoC].
-
-For answers to common questions about this code of conduct, see the FAQ at
-[https://www.contributor-covenant.org/faq][FAQ]. Translations are available at
-[https://www.contributor-covenant.org/translations][translations].
-
-[homepage]: https://www.contributor-covenant.org
-[v2.1]: https://www.contributor-covenant.org/version/2/1/code_of_conduct.html
-[Mozilla CoC]: https://github.com/mozilla/diversity
-[FAQ]: https://www.contributor-covenant.org/faq
-[translations]: https://www.contributor-covenant.org/translations
+This Code of Conduct was influenced in part by community guidelines from [SecKC](https://seckc.org), the bestest, largest, and coolest Kansas City security community. It strongly influenced the culture we want for Beacon becuz thats the vibe we want here! :D
