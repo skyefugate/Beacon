@@ -38,6 +38,9 @@ SIGNALS: list[Signal] = [
     Signal(FaultDomain.DEVICE, "high_cpu", 0.8, "CPU usage >90%"),
     Signal(FaultDomain.DEVICE, "high_memory", 0.8, "Memory usage >90%"),
     Signal(FaultDomain.DEVICE, "high_temperature", 0.6, "CPU temperature critical"),
+    Signal(FaultDomain.DEVICE, "disk_io_slow", 0.7, "Disk I/O latency >50ms"),
+    Signal(FaultDomain.DEVICE, "disk_near_full", 0.8, "Disk usage >85%"),
+    Signal(FaultDomain.DEVICE, "disk_io_critical", 0.9, "Disk I/O latency >200ms"),
     # Wi-Fi domain
     Signal(FaultDomain.WIFI, "weak_signal", 0.9, "Wi-Fi RSSI below -75 dBm"),
     Signal(FaultDomain.WIFI, "low_snr", 0.7, "Signal-to-noise ratio below 15 dB"),
@@ -60,6 +63,10 @@ SIGNALS: list[Signal] = [
     Signal(FaultDomain.APP_SAAS, "http_error", 0.8, "HTTP 4xx/5xx response"),
     Signal(FaultDomain.APP_SAAS, "http_timeout", 0.7, "HTTP connection or read timeout"),
     Signal(FaultDomain.APP_SAAS, "slow_http", 0.5, "Slow HTTP response (>2s)"),
+    # Disk domain (mapped to DEVICE -- disk I/O faults are local device faults)
+    Signal(FaultDomain.DEVICE, "high_disk_latency", 0.7, "Disk I/O latency >200ms"),
+    Signal(FaultDomain.DEVICE, "disk_full", 0.9, "Disk usage >95%"),
+    Signal(FaultDomain.DEVICE, "high_disk_io", 0.6, "Disk I/O utilisation >90%"),
 ]
 
 
@@ -120,6 +127,38 @@ class HeuristicRuleSet:
                     value=percent_used,
                 )
             )
+
+        # Disk signals
+        if m == "t_disk_usage":
+            used_percent = f.get("used_percent")
+            if isinstance(used_percent, (int, float)) and used_percent > 85:
+                matches.append(
+                    SignalMatch(
+                        signal=self._signal_map["disk_near_full"],
+                        evidence_ref=f"metric:t_disk_usage:used_percent={used_percent}",
+                        value=used_percent,
+                    )
+                )
+
+        if m == "t_disk_io":
+            avg_latency_ms = f.get("avg_latency_ms")
+            if isinstance(avg_latency_ms, (int, float)):
+                if avg_latency_ms > 200:
+                    matches.append(
+                        SignalMatch(
+                            signal=self._signal_map["disk_io_critical"],
+                            evidence_ref=f"metric:t_disk_io:avg_latency_ms={avg_latency_ms}",
+                            value=avg_latency_ms,
+                        )
+                    )
+                elif avg_latency_ms > 50:
+                    matches.append(
+                        SignalMatch(
+                            signal=self._signal_map["disk_io_slow"],
+                            evidence_ref=f"metric:t_disk_io:avg_latency_ms={avg_latency_ms}",
+                            value=avg_latency_ms,
+                        )
+                    )
 
         # Wi-Fi signals
         if m == "wifi_link":
@@ -255,5 +294,38 @@ class HeuristicRuleSet:
                             value=timeouts,
                         )
                     )
+
+        # Disk I/O signals (t_disk_io measurement from DiskSampler)
+        if m == "t_disk_io":
+            latency_ms = f.get("latency_ms")
+            if isinstance(latency_ms, (int, float)) and latency_ms > 200:
+                matches.append(
+                    SignalMatch(
+                        signal=self._signal_map["high_disk_latency"],
+                        evidence_ref=f"metric:t_disk_io:{tags.get('device', '')}:latency_ms={latency_ms}",
+                        value=latency_ms,
+                    )
+                )
+            util_pct = f.get("util_pct")
+            if isinstance(util_pct, (int, float)) and util_pct > 90:
+                matches.append(
+                    SignalMatch(
+                        signal=self._signal_map["high_disk_io"],
+                        evidence_ref=f"metric:t_disk_io:{tags.get('device', '')}:util_pct={util_pct}",
+                        value=util_pct,
+                    )
+                )
+
+        # Disk usage signals (t_disk_usage measurement from DiskSampler)
+        if m == "t_disk_usage":
+            used_pct = f.get("used_pct")
+            if isinstance(used_pct, (int, float)) and used_pct > 95:
+                matches.append(
+                    SignalMatch(
+                        signal=self._signal_map["disk_full"],
+                        evidence_ref=f"metric:t_disk_usage:{tags.get('mount', '')}:used_pct={used_pct}",
+                        value=used_pct,
+                    )
+                )
 
         return matches

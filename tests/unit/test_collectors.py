@@ -198,6 +198,30 @@ class TestWiFiCollector:
             weak_events = [e for e in envelope.events if e.event_type == "weak_signal"]
             assert len(weak_events) == 1
 
+    def test_beacon_lost_count_parsing(self):
+        with (
+            patch("beacon.collectors.wifi.platform") as mock_platform,
+            patch("beacon.collectors.wifi.subprocess") as mock_subprocess,
+        ):
+            mock_platform.system.return_value = "Darwin"
+            mock_subprocess.run.return_value = MagicMock(
+                returncode=0,
+                stdout=(
+                    "     agrCtlRSSI: -55\n"
+                    "     agrCtlNoise: -90\n"
+                    "     channel: 36\n"
+                    "     beaconLostCount: 5\n"
+                    "     SSID: TestNetwork\n"
+                ),
+            )
+
+            collector = WiFiCollector()
+            envelope = collector.collect(uuid4())
+
+            assert len(envelope.metrics) >= 1
+            wifi_metric = envelope.metrics[0]
+            assert wifi_metric.fields["beacon_lost_count"] == 5
+
     def test_unsupported_platform(self):
         with patch("beacon.collectors.wifi.platform") as mock_platform:
             mock_platform.system.return_value = "Windows"
