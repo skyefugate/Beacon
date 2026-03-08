@@ -3,10 +3,8 @@
 from __future__ import annotations
 
 import asyncio
-import os
 import signal
-from pathlib import Path
-from unittest.mock import AsyncMock, MagicMock, patch, mock_open
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
@@ -112,7 +110,7 @@ class TestDaemon:
         
         with patch("beacon.telemetry.daemon.get_settings", return_value=settings):
             with patch("beacon.telemetry.daemon.reset_settings"):
-                with patch("beacon.telemetry.daemon.apply_config_reload") as mock_apply:
+                with patch("beacon.telemetry.daemon.apply_config_reload"):
                     # Start daemon task
                     task = asyncio.create_task(_run_daemon(settings))
                     await asyncio.sleep(0.01)  # Let it set up signal handlers

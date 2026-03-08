@@ -203,7 +203,7 @@ class TestWiFiSampler:
     @patch("beacon.telemetry.samplers.wifi.asyncio")
     async def test_wdutil_parsing(self, mock_asyncio, mock_platform):
         mock_platform.system.return_value = "Darwin"
-        sampler = WiFiSampler()
+        WiFiSampler()
 
         # Airport fails, system_profiler succeeds
         airport_proc = AsyncMock()
