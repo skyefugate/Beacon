@@ -25,15 +25,17 @@ class TestEvidenceRoutes:
     def client(self, mock_evidence_store):
         """Create test client with mocked dependencies."""
         app = create_app()
-        with patch("beacon.api.routes.evidence.get_evidence_store", return_value=mock_evidence_store):
+        with patch(
+            "beacon.api.routes.evidence.get_evidence_store", return_value=mock_evidence_store
+        ):
             yield TestClient(app)
 
     def test_list_evidence_empty(self, client, mock_evidence_store):
         """Test listing evidence when no runs exist."""
         mock_evidence_store.list_runs.return_value = []
-        
+
         response = client.get("/evidence/")
-        
+
         assert response.status_code == 200
         assert response.json() == {"runs": []}
         mock_evidence_store.list_runs.assert_called_once()
@@ -42,9 +44,9 @@ class TestEvidenceRoutes:
         """Test listing evidence with existing runs."""
         run_ids = [uuid4(), uuid4()]
         mock_evidence_store.list_runs.return_value = run_ids
-        
+
         response = client.get("/evidence/")
-        
+
         assert response.status_code == 200
         data = response.json()
         assert "runs" in data
@@ -59,12 +61,12 @@ class TestEvidenceRoutes:
         mock_pack.model_dump.return_value = {
             "run_id": str(run_id),
             "pack_name": "test_pack",
-            "envelopes": []
+            "envelopes": [],
         }
         mock_evidence_store.load.return_value = mock_pack
-        
+
         response = client.get(f"/evidence/{run_id}")
-        
+
         assert response.status_code == 200
         data = response.json()
         assert data["run_id"] == str(run_id)
@@ -75,7 +77,7 @@ class TestEvidenceRoutes:
     def test_get_evidence_invalid_uuid(self, client, mock_evidence_store):
         """Test retrieving evidence with invalid UUID format."""
         response = client.get("/evidence/invalid-uuid")
-        
+
         assert response.status_code == 400
         assert "Invalid run_id format" in response.json()["detail"]
         mock_evidence_store.load.assert_not_called()
@@ -84,9 +86,9 @@ class TestEvidenceRoutes:
         """Test retrieving non-existent evidence pack."""
         run_id = uuid4()
         mock_evidence_store.load.return_value = None
-        
+
         response = client.get(f"/evidence/{run_id}")
-        
+
         assert response.status_code == 404
         assert f"Evidence pack '{run_id}' not found" in response.json()["detail"]
         mock_evidence_store.load.assert_called_once_with(run_id)
@@ -95,9 +97,9 @@ class TestEvidenceRoutes:
         """Test deleting evidence pack successfully."""
         run_id = uuid4()
         mock_evidence_store.delete.return_value = True
-        
+
         response = client.delete(f"/evidence/{run_id}")
-        
+
         assert response.status_code == 200
         assert response.json() == {"deleted": str(run_id)}
         mock_evidence_store.delete.assert_called_once_with(run_id)
@@ -105,7 +107,7 @@ class TestEvidenceRoutes:
     def test_delete_evidence_invalid_uuid(self, client, mock_evidence_store):
         """Test deleting evidence with invalid UUID format."""
         response = client.delete("/evidence/invalid-uuid")
-        
+
         assert response.status_code == 400
         assert "Invalid run_id format" in response.json()["detail"]
         mock_evidence_store.delete.assert_not_called()
@@ -114,9 +116,9 @@ class TestEvidenceRoutes:
         """Test deleting non-existent evidence pack."""
         run_id = uuid4()
         mock_evidence_store.delete.return_value = False
-        
+
         response = client.delete(f"/evidence/{run_id}")
-        
+
         assert response.status_code == 404
         assert f"Evidence pack '{run_id}' not found" in response.json()["detail"]
         mock_evidence_store.delete.assert_called_once_with(run_id)
@@ -126,7 +128,7 @@ class TestEvidenceRoutes:
         # Test empty string
         response = client.get("/evidence/")
         assert response.status_code == 200  # This hits list endpoint
-        
+
         # Test malformed UUIDs
         malformed_uuids = [
             "123",
@@ -135,13 +137,12 @@ class TestEvidenceRoutes:
             "12345678-1234-1234-1234-1234567890123",  # Too long
             "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",  # Invalid chars
         ]
-        
+
         for bad_uuid in malformed_uuids:
             response = client.get(f"/evidence/{bad_uuid}")
             assert response.status_code == 400
             assert "Invalid run_id format" in response.json()["detail"]
-            
+
             response = client.delete(f"/evidence/{bad_uuid}")
             assert response.status_code == 400
             assert "Invalid run_id format" in response.json()["detail"]
-

@@ -246,53 +246,59 @@ class TestPackExecutor:
         # First step fails, second succeeds
         assert len(envelopes) == 1
 
-    @patch('httpx.post')
+    @patch("httpx.post")
     def test_collector_fallback_on_connect_error(self, mock_post):
         """Test fallback to local execution when collector is unreachable."""
         mock_post.side_effect = httpx.ConnectError("Connection refused")
-        
+
         mock_registry = MagicMock(spec=PluginRegistry)
         mock_collector = MagicMock()
         run_id = uuid4()
         envelope = PluginEnvelope(
-            plugin_name="wifi", plugin_version="0.1.0", run_id=run_id,
-            started_at="2024-01-01T00:00:00Z", completed_at="2024-01-01T00:00:01Z"
+            plugin_name="wifi",
+            plugin_version="0.1.0",
+            run_id=run_id,
+            started_at="2024-01-01T00:00:00Z",
+            completed_at="2024-01-01T00:00:01Z",
         )
         mock_collector.collect.return_value = envelope
         mock_registry.get_collector.return_value = mock_collector
 
-        pack = PackDefinition(name="test", steps=[
-            StepConfig(plugin="wifi", type="collector", privileged=True)
-        ])
+        pack = PackDefinition(
+            name="test", steps=[StepConfig(plugin="wifi", type="collector", privileged=True)]
+        )
 
         executor = PackExecutor(mock_registry)
         envelopes = executor.execute(pack, run_id)
-        
+
         assert len(envelopes) == 1
         mock_collector.collect.assert_called_once()
 
-    @patch('httpx.post')
+    @patch("httpx.post")
     def test_step_timeout_handling(self, mock_post):
         """Test timeout handling during HTTP calls to collector."""
         mock_post.side_effect = httpx.TimeoutException("Request timeout")
-        
+
         mock_registry = MagicMock(spec=PluginRegistry)
         mock_collector = MagicMock()
         run_id = uuid4()
         envelope = PluginEnvelope(
-            plugin_name="wifi", plugin_version="0.1.0", run_id=run_id,
-            started_at="2024-01-01T00:00:00Z", completed_at="2024-01-01T00:00:01Z"
+            plugin_name="wifi",
+            plugin_version="0.1.0",
+            run_id=run_id,
+            started_at="2024-01-01T00:00:00Z",
+            completed_at="2024-01-01T00:00:01Z",
         )
         mock_collector.collect.return_value = envelope
         mock_registry.get_collector.return_value = mock_collector
 
-        pack = PackDefinition(name="test", steps=[
-            StepConfig(plugin="wifi", type="collector", privileged=True)
-        ])
+        pack = PackDefinition(
+            name="test", steps=[StepConfig(plugin="wifi", type="collector", privileged=True)]
+        )
 
         executor = PackExecutor(mock_registry, collector_timeout=1)
         envelopes = executor.execute(pack, run_id)
-        
+
         assert len(envelopes) == 1
         mock_collector.collect.assert_called_once()
 
@@ -303,43 +309,52 @@ class TestPackExecutor:
         mock_collector.collect.side_effect = OSError("Disk full")
         mock_registry.get_collector.return_value = mock_collector
 
-        pack = PackDefinition(name="test", steps=[
-            StepConfig(plugin="device", type="collector"),
-            StepConfig(plugin="lan", type="collector")
-        ])
+        pack = PackDefinition(
+            name="test",
+            steps=[
+                StepConfig(plugin="device", type="collector"),
+                StepConfig(plugin="lan", type="collector"),
+            ],
+        )
 
         executor = PackExecutor(mock_registry)
         envelopes = executor.execute(pack)
-        
+
         # Both steps fail due to storage issues
         assert len(envelopes) == 0
 
     def test_partial_pack_execution_with_failed_steps(self):
         """Test pack continues execution after step failures."""
         mock_registry = MagicMock(spec=PluginRegistry)
-        
+
         # Both collectors fail
         mock_registry.get_collector.side_effect = Exception("Fail")
-        
+
         # Runner succeeds
         mock_runner = MagicMock()
         run_id = uuid4()
         envelope = PluginEnvelope(
-            plugin_name="ping", plugin_version="0.1.0", run_id=run_id,
-            started_at="2024-01-01T00:00:00Z", completed_at="2024-01-01T00:00:01Z"
+            plugin_name="ping",
+            plugin_version="0.1.0",
+            run_id=run_id,
+            started_at="2024-01-01T00:00:00Z",
+            completed_at="2024-01-01T00:00:01Z",
         )
         mock_runner.run.return_value = envelope
         mock_registry.get_runner.return_value = mock_runner
 
-        pack = PackDefinition(name="test", steps=[
-            StepConfig(plugin="device", type="collector"),
-            StepConfig(plugin="lan", type="collector"), 
-            StepConfig(plugin="ping", type="runner")
-        ])
+        pack = PackDefinition(
+            name="test",
+            steps=[
+                StepConfig(plugin="device", type="collector"),
+                StepConfig(plugin="lan", type="collector"),
+                StepConfig(plugin="ping", type="runner"),
+            ],
+        )
 
         executor = PackExecutor(mock_registry)
         envelopes = executor.execute(pack, run_id)
-        
+
         # Only runner step succeeds
         assert len(envelopes) == 1
 
@@ -349,24 +364,25 @@ class TestPackExecutor:
         mock_collector = MagicMock()
         run_id = uuid4()
         envelope = PluginEnvelope(
-            plugin_name="device", plugin_version="0.1.0", run_id=run_id,
-            started_at="2024-01-01T00:00:00Z", completed_at="2024-01-01T00:00:01Z"
+            plugin_name="device",
+            plugin_version="0.1.0",
+            run_id=run_id,
+            started_at="2024-01-01T00:00:00Z",
+            completed_at="2024-01-01T00:00:01Z",
         )
         mock_collector.collect.return_value = envelope
         mock_registry.get_collector.return_value = mock_collector
 
-        pack = PackDefinition(name="test", steps=[
-            StepConfig(plugin="device", type="collector")
-        ])
+        pack = PackDefinition(name="test", steps=[StepConfig(plugin="device", type="collector")])
 
         executor = PackExecutor(mock_registry)
-        
+
         def execute_pack():
             return executor.execute(pack, uuid4())
 
         with concurrent.futures.ThreadPoolExecutor(max_workers=3) as pool:
             futures = [pool.submit(execute_pack) for _ in range(3)]
             results = [f.result() for f in futures]
-        
+
         # All executions complete successfully
         assert all(len(r) == 1 for r in results)

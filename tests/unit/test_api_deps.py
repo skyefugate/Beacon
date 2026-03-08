@@ -45,10 +45,10 @@ class TestDependencyInjection:
     def test_get_pack_registry_with_packs_dir(self, mock_load, mock_is_dir):
         """Test get_pack_registry loads from packs directory when it exists."""
         mock_is_dir.return_value = True
-        
+
         # Clear cache to ensure fresh call
         get_pack_registry.cache_clear()
-        
+
         registry = get_pack_registry()
         assert isinstance(registry, PackRegistry)
         mock_load.assert_called_once_with(Path("packs"))
@@ -57,10 +57,10 @@ class TestDependencyInjection:
     def test_get_pack_registry_without_packs_dir(self, mock_is_dir):
         """Test get_pack_registry works when packs directory doesn't exist."""
         mock_is_dir.return_value = False
-        
+
         # Clear cache to ensure fresh call
         get_pack_registry.cache_clear()
-        
+
         registry = get_pack_registry()
         assert isinstance(registry, PackRegistry)
 
@@ -68,10 +68,10 @@ class TestDependencyInjection:
     def test_get_artifact_store(self, mock_settings):
         """Test get_artifact_store returns ArtifactStore instance."""
         mock_settings.return_value.storage.artifact_dir = Path("/tmp/artifacts")
-        
+
         # Clear cache to ensure fresh call
         get_artifact_store.cache_clear()
-        
+
         store = get_artifact_store()
         assert isinstance(store, ArtifactStore)
 
@@ -79,10 +79,10 @@ class TestDependencyInjection:
     def test_get_evidence_store(self, mock_settings):
         """Test get_evidence_store returns EvidenceStore instance."""
         mock_settings.return_value.storage.evidence_dir = Path("/tmp/evidence")
-        
+
         # Clear cache to ensure fresh call
         get_evidence_store.cache_clear()
-        
+
         store = get_evidence_store()
         assert isinstance(store, EvidenceStore)
 
@@ -97,10 +97,10 @@ class TestDependencyInjection:
         """Test get_evidence_builder returns EvidencePackBuilder instance."""
         mock_settings.return_value = BeaconSettings()
         mock_engine.return_value = MagicMock()
-        
+
         # Clear cache to ensure fresh call
         get_evidence_builder.cache_clear()
-        
+
         builder = get_evidence_builder()
         assert isinstance(builder, EvidencePackBuilder)
 
@@ -111,7 +111,7 @@ class TestDependencyInjection:
         mock_settings.return_value.collector.url = "http://localhost:8080"
         mock_settings.return_value.collector.timeout_seconds = 30
         mock_plugin_registry.return_value = MagicMock()
-        
+
         executor = get_pack_executor()
         assert isinstance(executor, PackExecutor)
 
@@ -121,7 +121,7 @@ class TestDependencyInjection:
         """Test get_influx_storage returns InfluxStorage when healthy."""
         mock_settings.return_value = BeaconSettings()
         mock_health_check.return_value = True
-        
+
         with patch("beacon.storage.influx.InfluxStorage.__init__", return_value=None):
             storage = get_influx_storage()
             assert isinstance(storage, InfluxStorage)
@@ -132,7 +132,7 @@ class TestDependencyInjection:
         """Test get_influx_storage returns None when unhealthy."""
         mock_settings.return_value = BeaconSettings()
         mock_health_check.return_value = False
-        
+
         with patch("beacon.storage.influx.InfluxStorage.__init__", return_value=None):
             storage = get_influx_storage()
             assert storage is None
@@ -141,7 +141,7 @@ class TestDependencyInjection:
     def test_get_influx_storage_exception(self, mock_settings):
         """Test get_influx_storage returns None when exception occurs."""
         mock_settings.side_effect = Exception("Connection failed")
-        
+
         storage = get_influx_storage()
         assert storage is None
 
@@ -151,11 +151,11 @@ class TestDependencyInjection:
         settings1 = get_beacon_settings()
         settings2 = get_beacon_settings()
         assert settings1 is settings2
-        
+
         plugin_registry1 = get_plugin_registry()
         plugin_registry2 = get_plugin_registry()
         assert plugin_registry1 is plugin_registry2
-        
+
         fault_engine1 = get_fault_engine()
         fault_engine2 = get_fault_engine()
         assert fault_engine1 is fault_engine2

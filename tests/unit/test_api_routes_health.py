@@ -23,7 +23,7 @@ class TestHealthRoutes:
     def test_health_endpoint(self, client):
         """Test health endpoint returns OK status."""
         response = client.get("/health")
-        
+
         assert response.status_code == 200
         data = response.json()
         assert data["status"] == "ok"
@@ -32,7 +32,7 @@ class TestHealthRoutes:
     def test_health_endpoint_structure(self, client):
         """Test health endpoint response structure."""
         response = client.get("/health")
-        
+
         assert response.status_code == 200
         data = response.json()
         assert isinstance(data, dict)
@@ -44,10 +44,10 @@ class TestHealthRoutes:
         """Test ready endpoint when all services are healthy."""
         mock_influx = MagicMock()
         mock_influx.close.return_value = None
-        
+
         with patch("beacon.api.deps.get_influx_storage", return_value=mock_influx):
             response = client.get("/ready")
-            
+
             assert response.status_code == 200
             data = response.json()
             assert data["status"] == "ready"
@@ -58,7 +58,7 @@ class TestHealthRoutes:
         """Test ready endpoint when InfluxDB is unavailable."""
         with patch("beacon.api.deps.get_influx_storage", return_value=None):
             response = client.get("/ready")
-            
+
             assert response.status_code == 200
             data = response.json()
             assert data["status"] == "degraded"
@@ -68,7 +68,7 @@ class TestHealthRoutes:
         """Test ready endpoint response structure."""
         with patch("beacon.api.deps.get_influx_storage", return_value=None):
             response = client.get("/ready")
-            
+
             assert response.status_code == 200
             data = response.json()
             assert isinstance(data, dict)
@@ -81,7 +81,7 @@ class TestHealthRoutes:
         """Test that health endpoint is always available regardless of dependencies."""
         # Health should work even if other systems are down
         response = client.get("/health")
-        
+
         assert response.status_code == 200
         data = response.json()
         assert data["status"] == "ok"
@@ -95,7 +95,7 @@ class TestHealthRoutes:
             response = client.get("/ready")
             data = response.json()
             assert data["status"] == "ready"
-        
+
         # Test with unhealthy service
         with patch("beacon.api.deps.get_influx_storage", return_value=None):
             response = client.get("/ready")
@@ -114,7 +114,7 @@ class TestHealthRoutes:
     def test_multiple_ready_calls(self, client):
         """Test multiple calls to ready endpoint."""
         mock_influx = MagicMock()
-        
+
         with patch("beacon.api.deps.get_influx_storage", return_value=mock_influx):
             for _ in range(3):
                 response = client.get("/ready")
@@ -122,27 +122,27 @@ class TestHealthRoutes:
                 data = response.json()
                 assert data["status"] == "ready"
                 assert data["checks"]["influxdb"] == "ok"
-        
+
         # Verify close was called for each request
         assert mock_influx.close.call_count == 3
 
     def test_concurrent_health_requests(self, client):
         """Test concurrent health requests don't interfere."""
         import threading
-        
+
         results = []
-        
+
         def make_request():
             response = client.get("/health")
             results.append(response.status_code)
-        
+
         threads = [threading.Thread(target=make_request) for _ in range(10)]
-        
+
         for thread in threads:
             thread.start()
-        
+
         for thread in threads:
             thread.join()
-        
+
         assert all(status == 200 for status in results)
         assert len(results) == 10

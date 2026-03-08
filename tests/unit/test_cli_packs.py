@@ -24,25 +24,15 @@ def reset_beacon_settings():
 @pytest.fixture
 def mock_pack():
     """Mock diagnostic pack."""
-    step1 = MagicMock(
-        plugin="network",
-        type="ping",
-        enabled=True,
-        privileged=False
-    )
-    step2 = MagicMock(
-        plugin="system",
-        type="cpu",
-        enabled=False,
-        privileged=True
-    )
-    
+    step1 = MagicMock(plugin="network", type="ping", enabled=True, privileged=False)
+    step2 = MagicMock(plugin="system", type="cpu", enabled=False, privileged=True)
+
     pack = MagicMock()
     pack.name = "test_pack"
     pack.description = "Test diagnostic pack"
     pack.version = "1.0.0"
     pack.steps = [step1, step2]
-    
+
     return pack
 
 
@@ -52,10 +42,10 @@ class TestPacksList:
         with patch("beacon.packs.registry.PackRegistry") as MockRegistry:
             mock_registry = MockRegistry.return_value
             mock_registry.list_packs.return_value = []
-            
+
             with patch.object(Path, "is_dir", return_value=True):
                 result = runner.invoke(app, ["packs", "list"])
-            
+
             assert result.exit_code == 0
             assert "No packs found" in result.output
             assert "Check the 'packs/' directory" in result.output
@@ -65,10 +55,10 @@ class TestPacksList:
         with patch("beacon.packs.registry.PackRegistry") as MockRegistry:
             mock_registry = MockRegistry.return_value
             mock_registry.list_packs.return_value = [mock_pack]
-            
+
             with patch.object(Path, "is_dir", return_value=True):
                 result = runner.invoke(app, ["packs", "list"])
-            
+
             assert result.exit_code == 0
             assert "Available Packs" in result.output
             assert "test_pack" in result.output
@@ -81,10 +71,10 @@ class TestPacksList:
         with patch("beacon.packs.registry.PackRegistry") as MockRegistry:
             mock_registry = MockRegistry.return_value
             mock_registry.list_packs.return_value = []
-            
+
             with patch.object(Path, "is_dir", return_value=False):
                 result = runner.invoke(app, ["packs", "list"])
-            
+
             assert result.exit_code == 0
             assert "No packs found" in result.output
             # Should not try to load from directory
@@ -95,10 +85,10 @@ class TestPacksList:
         with patch("beacon.packs.registry.PackRegistry") as MockRegistry:
             mock_registry = MockRegistry.return_value
             mock_registry.list_packs.return_value = [mock_pack]
-            
+
             with patch.object(Path, "is_dir", return_value=True):
                 runner.invoke(app, ["packs", "list"])
-            
+
             mock_registry.load_from_directory.assert_called_once_with(Path("packs"))
 
     def test_list_multiple_packs(self):
@@ -108,20 +98,20 @@ class TestPacksList:
         pack1.description = "First pack"
         pack1.version = "1.0.0"
         pack1.steps = [MagicMock()]
-        
+
         pack2 = MagicMock()
         pack2.name = "pack2"
         pack2.description = "Second pack"
         pack2.version = "2.0.0"
         pack2.steps = [MagicMock(), MagicMock()]
-        
+
         with patch("beacon.packs.registry.PackRegistry") as MockRegistry:
             mock_registry = MockRegistry.return_value
             mock_registry.list_packs.return_value = [pack1, pack2]
-            
+
             with patch.object(Path, "is_dir", return_value=True):
                 result = runner.invoke(app, ["packs", "list"])
-            
+
             assert result.exit_code == 0
             assert "pack1" in result.output
             assert "pack2" in result.output
@@ -135,10 +125,10 @@ class TestPacksShow:
         with patch("beacon.packs.registry.PackRegistry") as MockRegistry:
             mock_registry = MockRegistry.return_value
             mock_registry.get.return_value = mock_pack
-            
+
             with patch.object(Path, "is_dir", return_value=True):
                 result = runner.invoke(app, ["packs", "show", "test_pack"])
-            
+
             assert result.exit_code == 0
             assert "test_pack" in result.output
             assert "Test diagnostic pack" in result.output
@@ -154,10 +144,10 @@ class TestPacksShow:
         with patch("beacon.packs.registry.PackRegistry") as MockRegistry:
             mock_registry = MockRegistry.return_value
             mock_registry.get.return_value = None
-            
+
             with patch.object(Path, "is_dir", return_value=True):
                 result = runner.invoke(app, ["packs", "show", "nonexistent"])
-            
+
             assert result.exit_code == 1
             assert "Pack 'nonexistent' not found" in result.output
 
@@ -166,10 +156,10 @@ class TestPacksShow:
         with patch("beacon.packs.registry.PackRegistry") as MockRegistry:
             mock_registry = MockRegistry.return_value
             mock_registry.get.return_value = mock_pack
-            
+
             with patch.object(Path, "is_dir", return_value=True):
                 result = runner.invoke(app, ["packs", "show", "test_pack"])
-            
+
             assert result.exit_code == 0
             # First step: enabled=True, privileged=False
             assert "enabled" in result.output
@@ -183,10 +173,10 @@ class TestPacksShow:
         with patch("beacon.packs.registry.PackRegistry") as MockRegistry:
             mock_registry = MockRegistry.return_value
             mock_registry.get.return_value = mock_pack
-            
+
             with patch.object(Path, "is_dir", return_value=True):
                 runner.invoke(app, ["packs", "show", "test_pack"])
-            
+
             mock_registry.load_from_directory.assert_called_once_with(Path("packs"))
 
     def test_show_no_packs_directory(self):
@@ -194,10 +184,10 @@ class TestPacksShow:
         with patch("beacon.packs.registry.PackRegistry") as MockRegistry:
             mock_registry = MockRegistry.return_value
             mock_registry.get.return_value = None
-            
+
             with patch.object(Path, "is_dir", return_value=False):
                 result = runner.invoke(app, ["packs", "show", "test_pack"])
-            
+
             assert result.exit_code == 1
             # Should not try to load from directory
             mock_registry.load_from_directory.assert_not_called()
@@ -205,19 +195,16 @@ class TestPacksShow:
     def test_show_pack_with_no_steps(self):
         """Test show command for pack with no steps."""
         pack_no_steps = MagicMock(
-            name="empty_pack",
-            description="Pack with no steps",
-            version="1.0.0",
-            steps=[]
+            name="empty_pack", description="Pack with no steps", version="1.0.0", steps=[]
         )
-        
+
         with patch("beacon.packs.registry.PackRegistry") as MockRegistry:
             mock_registry = MockRegistry.return_value
             mock_registry.get.return_value = pack_no_steps
-            
+
             with patch.object(Path, "is_dir", return_value=True):
                 result = runner.invoke(app, ["packs", "show", "empty_pack"])
-            
+
             assert result.exit_code == 0
             assert "empty_pack" in result.output
             assert "Steps" in result.output
@@ -227,32 +214,32 @@ class TestPacksCommandErrors:
     def test_missing_pack_name_for_show(self):
         """Test show command without pack name argument."""
         result = runner.invoke(app, ["packs", "show"])
-        
+
         assert result.exit_code != 0
         # Typer should show usage/help
 
     def test_invalid_packs_subcommand(self):
         """Test invalid packs subcommand."""
         result = runner.invoke(app, ["packs", "invalid"])
-        
+
         assert result.exit_code != 0
 
     def test_pack_registry_exception_list(self):
         """Test handling of pack registry exceptions in list command."""
         with patch("beacon.packs.registry.PackRegistry") as MockRegistry:
             MockRegistry.side_effect = Exception("Registry error")
-            
+
             result = runner.invoke(app, ["packs", "list"])
-            
+
             assert result.exit_code != 0
 
     def test_pack_registry_exception_show(self):
         """Test handling of pack registry exceptions in show command."""
         with patch("beacon.packs.registry.PackRegistry") as MockRegistry:
             MockRegistry.side_effect = Exception("Registry error")
-            
+
             result = runner.invoke(app, ["packs", "show", "test_pack"])
-            
+
             assert result.exit_code != 0
 
     def test_load_from_directory_exception(self):
@@ -261,9 +248,9 @@ class TestPacksCommandErrors:
             mock_registry = MockRegistry.return_value
             mock_registry.load_from_directory.side_effect = Exception("Load error")
             mock_registry.list_packs.return_value = []
-            
+
             with patch.object(Path, "is_dir", return_value=True):
                 result = runner.invoke(app, ["packs", "list"])
-            
+
             # Should handle the exception gracefully
             assert result.exit_code != 0

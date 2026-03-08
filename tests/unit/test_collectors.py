@@ -255,8 +255,7 @@ class TestLANCollector:
         ):
             mock_platform.system.return_value = "Darwin"
             mock_subprocess.run.return_value = MagicMock(
-                returncode=0,
-                stdout="default via 192.168.1.1 dev en0\n"
+                returncode=0, stdout="default via 192.168.1.1 dev en0\n"
             )
             mock_psutil.net_io_counters.return_value = {}
             mock_psutil.net_if_addrs.return_value = {}
@@ -275,8 +274,7 @@ class TestLANCollector:
         ):
             mock_platform.system.return_value = "Linux"
             mock_subprocess.run.return_value = MagicMock(
-                returncode=0,
-                stdout="default via 192.168.1.1 dev eth0 proto dhcp metric 100\n"
+                returncode=0, stdout="default via 192.168.1.1 dev eth0 proto dhcp metric 100\n"
             )
             mock_psutil.net_io_counters.return_value = {}
             mock_psutil.net_if_addrs.return_value = {}
@@ -307,10 +305,46 @@ class TestLANCollector:
     def test_interface_role_classification(self):
         with patch("beacon.collectors.lan.psutil") as mock_psutil:
             mock_psutil.net_io_counters.return_value = {
-                "en0": MagicMock(bytes_sent=1000, bytes_recv=2000, packets_sent=10, packets_recv=20, errin=0, errout=0, dropin=0, dropout=0),
-                "bridge0": MagicMock(bytes_sent=0, bytes_recv=0, packets_sent=0, packets_recv=0, errin=0, errout=0, dropin=0, dropout=0),
-                "utun0": MagicMock(bytes_sent=500, bytes_recv=600, packets_sent=5, packets_recv=6, errin=0, errout=0, dropin=0, dropout=0),
-                "awdl0": MagicMock(bytes_sent=0, bytes_recv=0, packets_sent=0, packets_recv=0, errin=0, errout=0, dropin=0, dropout=0),
+                "en0": MagicMock(
+                    bytes_sent=1000,
+                    bytes_recv=2000,
+                    packets_sent=10,
+                    packets_recv=20,
+                    errin=0,
+                    errout=0,
+                    dropin=0,
+                    dropout=0,
+                ),
+                "bridge0": MagicMock(
+                    bytes_sent=0,
+                    bytes_recv=0,
+                    packets_sent=0,
+                    packets_recv=0,
+                    errin=0,
+                    errout=0,
+                    dropin=0,
+                    dropout=0,
+                ),
+                "utun0": MagicMock(
+                    bytes_sent=500,
+                    bytes_recv=600,
+                    packets_sent=5,
+                    packets_recv=6,
+                    errin=0,
+                    errout=0,
+                    dropin=0,
+                    dropout=0,
+                ),
+                "awdl0": MagicMock(
+                    bytes_sent=0,
+                    bytes_recv=0,
+                    packets_sent=0,
+                    packets_recv=0,
+                    errin=0,
+                    errout=0,
+                    dropin=0,
+                    dropout=0,
+                ),
             }
             mock_psutil.net_if_addrs.return_value = {
                 "en0": [MagicMock(family=MagicMock(name="AF_INET"), address="192.168.1.100")],
@@ -347,11 +381,19 @@ class TestLANCollector:
         ):
             mock_platform.system.return_value = "Linux"
             mock_subprocess.run.return_value = MagicMock(
-                returncode=0,
-                stdout="default via 192.168.1.1 dev eth0 proto dhcp metric 100\n"
+                returncode=0, stdout="default via 192.168.1.1 dev eth0 proto dhcp metric 100\n"
             )
             mock_psutil.net_io_counters.return_value = {
-                "eth0": MagicMock(bytes_sent=1000, bytes_recv=2000, packets_sent=10, packets_recv=20, errin=0, errout=0, dropin=0, dropout=0),
+                "eth0": MagicMock(
+                    bytes_sent=1000,
+                    bytes_recv=2000,
+                    packets_sent=10,
+                    packets_recv=20,
+                    errin=0,
+                    errout=0,
+                    dropin=0,
+                    dropout=0,
+                ),
             }
             mock_psutil.net_if_addrs.return_value = {
                 "eth0": [MagicMock(family=MagicMock(name="AF_INET"), address="192.168.1.100")],
@@ -369,7 +411,16 @@ class TestLANCollector:
     def test_inactive_interface_role(self):
         with patch("beacon.collectors.lan.psutil") as mock_psutil:
             mock_psutil.net_io_counters.return_value = {
-                "eth1": MagicMock(bytes_sent=0, bytes_recv=0, packets_sent=0, packets_recv=0, errin=0, errout=0, dropin=0, dropout=0),
+                "eth1": MagicMock(
+                    bytes_sent=0,
+                    bytes_recv=0,
+                    packets_sent=0,
+                    packets_recv=0,
+                    errin=0,
+                    errout=0,
+                    dropin=0,
+                    dropout=0,
+                ),
             }
             mock_psutil.net_if_addrs.return_value = {}
             mock_psutil.net_if_stats.return_value = {
@@ -470,7 +521,10 @@ class TestWiFiCollector:
             # First call (airport) fails, second call (wdutil) succeeds
             mock_subprocess.run.side_effect = [
                 MagicMock(returncode=1, stdout=""),
-                MagicMock(returncode=0, stdout="RSSI: -60 dBm\nNoise: -95 dBm\nChannel: 11\nSSID: TestNet\n")
+                MagicMock(
+                    returncode=0,
+                    stdout="RSSI: -60 dBm\nNoise: -95 dBm\nChannel: 11\nSSID: TestNet\n",
+                ),
             ]
 
             collector = WiFiCollector()
@@ -489,7 +543,10 @@ class TestWiFiCollector:
             mock_subprocess.run.side_effect = [
                 MagicMock(returncode=1, stdout=""),
                 MagicMock(returncode=1, stdout=""),
-                MagicMock(returncode=0, stdout="Signal / Noise: -65 dBm / -90 dBm\nChannel: 6\nNetwork: MyWiFi\n")
+                MagicMock(
+                    returncode=0,
+                    stdout="Signal / Noise: -65 dBm / -90 dBm\nChannel: 6\nNetwork: MyWiFi\n",
+                ),
             ]
 
             collector = WiFiCollector()
@@ -519,8 +576,7 @@ class TestWiFiCollector:
         ):
             mock_platform.system.return_value = "Linux"
             mock_subprocess.run.return_value = MagicMock(
-                returncode=0,
-                stdout="signal: -50 dBm\nssid TestNetwork\nfreq: 2437\n"
+                returncode=0, stdout="signal: -50 dBm\nssid TestNetwork\nfreq: 2437\n"
             )
 
             collector = WiFiCollector()
@@ -551,8 +607,7 @@ class TestWiFiCollector:
         ):
             mock_platform.system.return_value = "Darwin"
             mock_subprocess.run.return_value = MagicMock(
-                returncode=0,
-                stdout="agrCtlRSSI: -55\nbeaconLostCount: 15\n"
+                returncode=0, stdout="agrCtlRSSI: -55\nbeaconLostCount: 15\n"
             )
 
             collector = WiFiCollector()
@@ -578,7 +633,7 @@ class TestWiFiCollector:
                     "     SSID: Test Network With Spaces\n"
                     "     BSSID: aa:bb:cc:dd:ee:ff\n"
                     "     CC: US\n"
-                )
+                ),
             )
 
             collector = WiFiCollector()
@@ -599,7 +654,7 @@ class TestWiFiCollector:
             mock_platform.system.return_value = "Linux"
             mock_subprocess.run.return_value = MagicMock(
                 returncode=0,
-                stdout="signal: -50 dBm\nssid TestNetwork\nfreq: 2412\n"  # Channel 1
+                stdout="signal: -50 dBm\nssid TestNetwork\nfreq: 2412\n",  # Channel 1
             )
 
             collector = WiFiCollector()
@@ -744,7 +799,7 @@ class TestDetectGateway:
             mock_platform.system.return_value = "Darwin"
             mock_subprocess.run.return_value = MagicMock(
                 returncode=0,
-                stdout="   route to: default\ndestination: default\n       mask: default\n    gateway: 192.168.1.1\n"
+                stdout="   route to: default\ndestination: default\n       mask: default\n    gateway: 192.168.1.1\n",
             )
 
             gateway = _detect_gateway()
@@ -757,8 +812,7 @@ class TestDetectGateway:
         ):
             mock_platform.system.return_value = "Linux"
             mock_subprocess.run.return_value = MagicMock(
-                returncode=0,
-                stdout="default via 192.168.1.1 dev eth0 proto dhcp metric 100\n"
+                returncode=0, stdout="default via 192.168.1.1 dev eth0 proto dhcp metric 100\n"
             )
 
             gateway = _detect_gateway()
@@ -782,8 +836,7 @@ class TestDetectGateway:
         ):
             mock_platform.system.return_value = "Linux"
             mock_subprocess.run.return_value = MagicMock(
-                returncode=0,
-                stdout="default dev eth0 proto dhcp metric 100\n"
+                returncode=0, stdout="default dev eth0 proto dhcp metric 100\n"
             )
 
             gateway = _detect_gateway()

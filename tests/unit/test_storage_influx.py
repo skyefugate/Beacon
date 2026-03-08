@@ -124,11 +124,11 @@ class TestInfluxStorage:
         mock_query_api.query.return_value = [mock_table]
 
         storage = InfluxStorage(mock_settings)
-        result = storage.query("from(bucket: \"test\")")
+        result = storage.query('from(bucket: "test")')
 
         assert len(result) == 1
         assert result[0] == {"_time": "2023-01-01", "_value": 12.5}
-        mock_query_api.query.assert_called_once_with("from(bucket: \"test\")", org="test-org")
+        mock_query_api.query.assert_called_once_with('from(bucket: "test")', org="test-org")
 
     @patch("beacon.storage.influx.InfluxDBClient")
     def test_health_check_success(self, mock_client_class, mock_settings):
@@ -185,7 +185,7 @@ class TestInfluxStorage:
         mock_client_class.return_value = mock_client
 
         storage = InfluxStorage(mock_settings)
-        
+
         with pytest.raises(Exception, match="Write failed"):
             storage.write_metric(mock_metric)
 
@@ -198,6 +198,6 @@ class TestInfluxStorage:
         mock_client_class.return_value = mock_client
 
         storage = InfluxStorage(mock_settings)
-        
+
         with pytest.raises(Exception, match="Query failed"):
             storage.query("invalid query")

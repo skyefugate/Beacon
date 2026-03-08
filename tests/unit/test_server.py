@@ -31,10 +31,7 @@ class TestCollectorServer:
             mock_collector_class.return_value = mock_collector
 
             run_id = str(uuid4())
-            response = self.client.post(
-                "/collect/device",
-                json={"run_id": run_id, "config": {}}
-            )
+            response = self.client.post("/collect/device", json={"run_id": run_id, "config": {}})
 
             assert response.status_code == 200
             assert response.json() == {"test": "data"}
@@ -43,7 +40,7 @@ class TestCollectorServer:
     def test_collect_ping_runner(self):
         with (
             patch("beacon.collectors.server.PingRunner") as mock_runner_class,
-            patch("beacon.collectors.server.RunnerConfig") as mock_config_class
+            patch("beacon.collectors.server.RunnerConfig") as mock_config_class,
         ):
             mock_runner = MagicMock()
             mock_envelope = MagicMock()
@@ -55,10 +52,7 @@ class TestCollectorServer:
 
             run_id = str(uuid4())
             config = {"target": "8.8.8.8"}
-            response = self.client.post(
-                "/collect/ping",
-                json={"run_id": run_id, "config": config}
-            )
+            response = self.client.post("/collect/ping", json={"run_id": run_id, "config": config})
 
             assert response.status_code == 200
             assert response.json() == {"runner": "result"}
@@ -68,7 +62,7 @@ class TestCollectorServer:
     def test_collect_runner_no_config(self):
         with (
             patch("beacon.collectors.server.TracerouteRunner") as mock_runner_class,
-            patch("beacon.collectors.server.RunnerConfig") as mock_config_class
+            patch("beacon.collectors.server.RunnerConfig") as mock_config_class,
         ):
             mock_runner = MagicMock()
             mock_envelope = MagicMock()
@@ -79,20 +73,14 @@ class TestCollectorServer:
             mock_config_class.return_value = mock_config
 
             run_id = str(uuid4())
-            response = self.client.post(
-                "/collect/traceroute",
-                json={"run_id": run_id}
-            )
+            response = self.client.post("/collect/traceroute", json={"run_id": run_id})
 
             assert response.status_code == 200
             mock_config_class.assert_called_once_with()
 
     def test_collect_unknown_plugin(self):
         run_id = str(uuid4())
-        response = self.client.post(
-            "/collect/unknown",
-            json={"run_id": run_id}
-        )
+        response = self.client.post("/collect/unknown", json={"run_id": run_id})
 
         assert response.status_code == 404
         assert "Unknown plugin: unknown" in response.json()["detail"]

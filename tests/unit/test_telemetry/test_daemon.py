@@ -10,13 +10,13 @@ import pytest
 
 from beacon.config import BeaconSettings
 from beacon.telemetry.daemon import (
-    _build_scheduler, 
-    read_pid, 
-    _write_pid, 
-    _remove_pid, 
+    _build_scheduler,
+    read_pid,
+    _write_pid,
+    _remove_pid,
     _run_daemon,
     run,
-    apply_config_reload
+    apply_config_reload,
 )
 
 
@@ -105,31 +105,37 @@ class TestDaemon:
         mock_build_scheduler.return_value = mock_scheduler
         mock_loop = MagicMock()
         mock_get_loop.return_value = mock_loop
-        
+
         settings = BeaconSettings()
-        
+
         with patch("beacon.telemetry.daemon.get_settings", return_value=settings):
             with patch("beacon.telemetry.daemon.reset_settings"):
                 with patch("beacon.telemetry.daemon.apply_config_reload"):
                     # Start daemon task
                     task = asyncio.create_task(_run_daemon(settings))
                     await asyncio.sleep(0.01)  # Let it set up signal handlers
-                    
+
                     # Verify SIGHUP handler was registered
-                    sighup_calls = [call for call in mock_loop.add_signal_handler.call_args_list 
-                                   if call[0][0] == signal.SIGHUP]
+                    sighup_calls = [
+                        call
+                        for call in mock_loop.add_signal_handler.call_args_list
+                        if call[0][0] == signal.SIGHUP
+                    ]
                     assert len(sighup_calls) == 1
-                    
+
                     # Simulate SIGHUP
                     sighup_handler = sighup_calls[0][0][1]
                     sighup_handler()
-                    
+
                     # Stop daemon
-                    sigterm_calls = [call for call in mock_loop.add_signal_handler.call_args_list 
-                                    if call[0][0] == signal.SIGTERM]
+                    sigterm_calls = [
+                        call
+                        for call in mock_loop.add_signal_handler.call_args_list
+                        if call[0][0] == signal.SIGTERM
+                    ]
                     sigterm_handler = sigterm_calls[0][0][1]
                     sigterm_handler(signal.SIGTERM)
-                    
+
                     await task
 
     @patch("beacon.telemetry.daemon._build_scheduler")
@@ -139,22 +145,25 @@ class TestDaemon:
         mock_build_scheduler.return_value = mock_scheduler
         mock_loop = MagicMock()
         mock_get_loop.return_value = mock_loop
-        
+
         settings = BeaconSettings()
-        
+
         # Start daemon task
         task = asyncio.create_task(_run_daemon(settings))
         await asyncio.sleep(0.01)  # Let it set up signal handlers
-        
+
         # Verify SIGTERM handler was registered
-        sigterm_calls = [call for call in mock_loop.add_signal_handler.call_args_list 
-                        if call[0][0] == signal.SIGTERM]
+        sigterm_calls = [
+            call
+            for call in mock_loop.add_signal_handler.call_args_list
+            if call[0][0] == signal.SIGTERM
+        ]
         assert len(sigterm_calls) == 1
-        
+
         # Simulate SIGTERM
         sigterm_handler = sigterm_calls[0][0][1]
         sigterm_handler(signal.SIGTERM)
-        
+
         await task
         mock_scheduler.stop.assert_called_once()
 
@@ -164,15 +173,22 @@ class TestDaemon:
     @patch("beacon.telemetry.daemon._write_pid")
     @patch("beacon.telemetry.daemon._remove_pid")
     @patch("asyncio.run")
-    def test_daemon_startup_sequence(self, mock_run, mock_remove_pid, mock_write_pid, 
-                                   mock_read_pid, mock_setup_logging, mock_get_settings):
+    def test_daemon_startup_sequence(
+        self,
+        mock_run,
+        mock_remove_pid,
+        mock_write_pid,
+        mock_read_pid,
+        mock_setup_logging,
+        mock_get_settings,
+    ):
         settings = BeaconSettings()
         settings.telemetry.enabled = True
         mock_get_settings.return_value = settings
         mock_read_pid.return_value = None  # No existing daemon
-        
+
         run()
-        
+
         mock_setup_logging.assert_called_once_with(settings)
         mock_read_pid.assert_called_once()
         mock_write_pid.assert_called_once()
@@ -181,15 +197,17 @@ class TestDaemon:
     @patch("beacon.telemetry.daemon.get_settings")
     @patch("beacon.telemetry.daemon._setup_logging")
     @patch("beacon.telemetry.daemon.read_pid")
-    def test_daemon_startup_already_running(self, mock_read_pid, mock_setup_logging, mock_get_settings):
+    def test_daemon_startup_already_running(
+        self, mock_read_pid, mock_setup_logging, mock_get_settings
+    ):
         settings = BeaconSettings()
         settings.telemetry.enabled = True
         mock_get_settings.return_value = settings
         mock_read_pid.return_value = 12345  # Existing daemon
-        
+
         with pytest.raises(SystemExit) as exc_info:
             run()
-        
+
         assert exc_info.value.code == 1
 
     @patch("beacon.telemetry.daemon.get_settings")
@@ -198,10 +216,10 @@ class TestDaemon:
         settings = BeaconSettings()
         settings.telemetry.enabled = False
         mock_get_settings.return_value = settings
-        
+
         with pytest.raises(SystemExit) as exc_info:
             run()
-        
+
         assert exc_info.value.code == 1
 
     @patch("beacon.telemetry.daemon.get_settings")
@@ -210,17 +228,24 @@ class TestDaemon:
     @patch("beacon.telemetry.daemon._write_pid")
     @patch("beacon.telemetry.daemon._remove_pid")
     @patch("asyncio.run")
-    def test_daemon_startup_error_cleanup(self, mock_run, mock_remove_pid, mock_write_pid,
-                                        mock_read_pid, mock_setup_logging, mock_get_settings):
+    def test_daemon_startup_error_cleanup(
+        self,
+        mock_run,
+        mock_remove_pid,
+        mock_write_pid,
+        mock_read_pid,
+        mock_setup_logging,
+        mock_get_settings,
+    ):
         settings = BeaconSettings()
         settings.telemetry.enabled = True
         mock_get_settings.return_value = settings
         mock_read_pid.return_value = None
         mock_run.side_effect = Exception("Startup failed")
-        
+
         with pytest.raises(Exception):
             run()
-        
+
         mock_remove_pid.assert_called_once()  # PID file cleaned up
 
     def test_apply_config_reload_sampler_intervals(self):
@@ -229,16 +254,16 @@ class TestDaemon:
         mock_sampler = MagicMock()
         mock_sampler.name = "ping"
         mock_scheduler._samplers = [mock_sampler]
-        
+
         # Create old and new settings with different intervals
         old_settings = BeaconSettings()
         old_settings.telemetry.tier0_ping_interval = 30
-        
+
         new_settings = BeaconSettings()
         new_settings.telemetry.tier0_ping_interval = 60
-        
+
         apply_config_reload(mock_scheduler, old_settings.telemetry, new_settings)
-        
+
         mock_scheduler.set_interval.assert_called_once_with("ping", 60)
 
     def test_apply_config_reload_ping_targets(self):
@@ -247,13 +272,13 @@ class TestDaemon:
         mock_ping_sampler = MagicMock()
         mock_ping_sampler.name = "ping"
         mock_scheduler._samplers = [mock_ping_sampler]
-        
+
         old_settings = BeaconSettings()
         old_settings.telemetry.ping_targets = ["8.8.8.8"]
-        
+
         new_settings = BeaconSettings()
         new_settings.telemetry.ping_targets = ["1.1.1.1", "8.8.8.8"]
-        
+
         apply_config_reload(mock_scheduler, old_settings.telemetry, new_settings)
-        
+
         assert mock_ping_sampler._targets == ["1.1.1.1", "8.8.8.8"]

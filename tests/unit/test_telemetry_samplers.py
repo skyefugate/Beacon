@@ -47,10 +47,10 @@ class TestPingSampler:
             "rtt min/avg/max/mdev = 10.1/15.5/25.3/4.2 ms\n"
         )
         mock_subprocess.run.return_value = mock_result
-        
+
         sampler = PingSampler(targets=["8.8.8.8"], ping_gateway=False)
         metrics = await sampler.sample()
-        
+
         assert len(metrics) == 1
         assert metrics[0].measurement == "ping"
         assert metrics[0].fields["rtt_ms"] == 15.5
@@ -63,10 +63,10 @@ class TestPingSampler:
         mock_result = Mock()
         mock_result.returncode = 1
         mock_subprocess.run.return_value = mock_result
-        
+
         sampler = PingSampler(targets=["8.8.8.8"], ping_gateway=False)
         metrics = await sampler.sample()
-        
+
         assert len(metrics) == 1
         assert metrics[0].fields["rtt_ms"] == 0.0
         assert metrics[0].fields["loss_pct"] == 100.0
@@ -75,10 +75,10 @@ class TestPingSampler:
     @patch("beacon.telemetry.samplers.ping.subprocess")
     async def test_sample_exception(self, mock_subprocess):
         mock_subprocess.run.side_effect = Exception("Command failed")
-        
+
         sampler = PingSampler(targets=["8.8.8.8"], ping_gateway=False)
         metrics = await sampler.sample()
-        
+
         assert len(metrics) == 1
         assert metrics[0].fields["rtt_ms"] == 0.0
         assert metrics[0].fields["loss_pct"] == 100.0
@@ -105,17 +105,19 @@ class TestDNSSampler:
     @patch("beacon.telemetry.samplers.dns.socket")
     async def test_sample_success(self, mock_socket, mock_time):
         mock_time.time.side_effect = [1000.0, 1000.05]  # 50ms response
-        mock_socket.getaddrinfo.return_value = [("family", "type", "proto", "canonname", ("1.2.3.4", 80))]
-        
+        mock_socket.getaddrinfo.return_value = [
+            ("family", "type", "proto", "canonname", ("1.2.3.4", 80))
+        ]
+
         sampler = DNSSampler(resolvers=["8.8.8.8"], domains=["google.com"])
-        
+
         with patch("beacon.telemetry.samplers.dns.dns.resolver.Resolver") as mock_resolver_class:
             mock_resolver = Mock()
             mock_resolver.resolve.return_value = [Mock(address="1.2.3.4")]
             mock_resolver_class.return_value = mock_resolver
-            
+
             metrics = await sampler.sample()
-        
+
         assert len(metrics) == 1
         assert metrics[0].measurement == "dns"
         assert metrics[0].fields["response_time_ms"] == 50.0
@@ -126,14 +128,14 @@ class TestDNSSampler:
     @pytest.mark.asyncio
     async def test_sample_failure(self):
         sampler = DNSSampler(resolvers=["8.8.8.8"], domains=["google.com"])
-        
+
         with patch("beacon.telemetry.samplers.dns.dns.resolver.Resolver") as mock_resolver_class:
             mock_resolver = Mock()
             mock_resolver.resolve.side_effect = Exception("DNS error")
             mock_resolver_class.return_value = mock_resolver
-            
+
             metrics = await sampler.sample()
-        
+
         assert len(metrics) == 1
         assert metrics[0].fields["success"] == 0
 
@@ -155,14 +157,14 @@ class TestHTTPSampler:
         mock_response = Mock()
         mock_response.status_code = 200
         mock_response.elapsed.total_seconds.return_value = 0.5
-        
+
         mock_client = AsyncMock()
         mock_client.get.return_value = mock_response
         mock_client_class.return_value.__aenter__.return_value = mock_client
-        
+
         sampler = HTTPSampler(targets=["https://google.com"])
         metrics = await sampler.sample()
-        
+
         assert len(metrics) == 1
         assert metrics[0].measurement == "http"
         assert metrics[0].fields["response_time_ms"] == 500.0
@@ -176,10 +178,10 @@ class TestHTTPSampler:
         mock_client = AsyncMock()
         mock_client.get.side_effect = Exception("HTTP error")
         mock_client_class.return_value.__aenter__.return_value = mock_client
-        
+
         sampler = HTTPSampler(targets=["https://google.com"])
         metrics = await sampler.sample()
-        
+
         assert len(metrics) == 1
         assert metrics[0].fields["success"] == 0
         assert metrics[0].fields["status_code"] == 0
@@ -198,26 +200,26 @@ class TestDeviceSampler:
         mock_psutil.cpu_percent.return_value = 25.5
         mock_psutil.getloadavg.return_value = (1.2, 1.0, 0.8)
         mock_psutil.cpu_count.return_value = 4
-        
+
         # Mock memory
         mock_memory = Mock()
         mock_memory.total = 8 * 1024 * 1024 * 1024  # 8GB
         mock_memory.available = 4 * 1024 * 1024 * 1024  # 4GB
         mock_memory.percent = 50.0
         mock_psutil.virtual_memory.return_value = mock_memory
-        
+
         # Mock disk
         mock_disk = Mock()
         mock_disk.total = 256 * 1024 * 1024 * 1024  # 256GB
         mock_disk.free = 128 * 1024 * 1024 * 1024  # 128GB
         mock_disk.percent = 50.0
         mock_psutil.disk_usage.return_value = mock_disk
-        
+
         sampler = DeviceSampler()
         metrics = await sampler.sample()
-        
+
         assert len(metrics) >= 3  # CPU, memory, disk
-        
+
         # Find CPU metric
         cpu_metric = next(m for m in metrics if m.measurement == "device_cpu")
         assert cpu_metric.fields["percent"] == 25.5
@@ -227,10 +229,10 @@ class TestDeviceSampler:
     @patch("beacon.telemetry.samplers.device.psutil")
     async def test_sample_exception(self, mock_psutil):
         mock_psutil.cpu_percent.side_effect = Exception("CPU error")
-        
+
         sampler = DeviceSampler()
         metrics = await sampler.sample()
-        
+
         # Should return empty list on exception
         assert metrics == []
 
@@ -261,7 +263,7 @@ class TestContextSampler:
         mock_ip_response = Mock()
         mock_ip_response.status_code = 200
         mock_ip_response.text = "203.0.113.1"
-        
+
         # Mock geo response
         mock_geo_response = Mock()
         mock_geo_response.status_code = 200
@@ -271,12 +273,12 @@ class TestContextSampler:
             "city": "San Francisco",
             "isp": "Example ISP",
         }
-        
+
         mock_httpx.get.side_effect = [mock_ip_response, mock_geo_response]
-        
+
         sampler = ContextSampler()
         metrics = await sampler.sample()
-        
+
         assert len(metrics) == 1
         assert metrics[0].measurement == "context"
         assert metrics[0].fields["public_ip"] == "203.0.113.1"
@@ -287,13 +289,13 @@ class TestContextSampler:
     @patch("beacon.telemetry.samplers.context.httpx")
     async def test_sample_cached_values(self, mock_httpx):
         sampler = ContextSampler()
-        
+
         # Set cached values
         sampler._public_ip_cache = ("203.0.113.1", 2000000000)  # Future timestamp
         sampler._geo_cache = ({"country": "US"}, 2000000000)
-        
+
         metrics = await sampler.sample()
-        
+
         # Should not make HTTP requests
         mock_httpx.get.assert_not_called()
         assert len(metrics) == 1
@@ -306,10 +308,10 @@ class TestContextSampler:
         mock_ip_response.status_code = 200
         mock_ip_response.text = "203.0.113.1"
         mock_httpx.get.return_value = mock_ip_response
-        
+
         sampler = ContextSampler(geo_enabled=False)
         metrics = await sampler.sample()
-        
+
         assert len(metrics) == 1
         assert "country" not in metrics[0].fields
         # Should only call once for IP, not for geo
@@ -347,10 +349,10 @@ lastAssocStatus: 0
         channel: 36
         """
         mock_subprocess.run.return_value = mock_result
-        
+
         sampler = WiFiSampler()
         metrics = await sampler.sample()
-        
+
         assert len(metrics) == 1
         assert metrics[0].measurement == "wifi"
         assert metrics[0].fields["rssi_dbm"] == -45
@@ -375,10 +377,10 @@ wlan0     IEEE 802.11  ESSID:"TestNetwork"
           Rx invalid nwid:0  Rx invalid crypt:0  Rx invalid frag:0
         """
         mock_subprocess.run.return_value = mock_result
-        
+
         sampler = WiFiSampler()
         metrics = await sampler.sample()
-        
+
         assert len(metrics) == 1
         assert metrics[0].measurement == "wifi"
         assert metrics[0].fields["rssi_dbm"] == -40
@@ -393,10 +395,10 @@ wlan0     IEEE 802.11  ESSID:"TestNetwork"
         mock_result = Mock()
         mock_result.returncode = 1
         mock_subprocess.run.return_value = mock_result
-        
+
         sampler = WiFiSampler()
         metrics = await sampler.sample()
-        
+
         assert metrics == []
 
 
@@ -419,12 +421,12 @@ class TestNicSampler:
         mock_stats.errout = 0
         mock_stats.dropin = 0
         mock_stats.dropout = 0
-        
+
         mock_psutil.net_io_counters.return_value = {"eth0": mock_stats}
-        
+
         sampler = NicSampler()
         metrics = await sampler.sample()
-        
+
         assert len(metrics) == 1
         assert metrics[0].measurement == "nic"
         assert metrics[0].fields["bytes_sent"] == 1000000
@@ -435,10 +437,10 @@ class TestNicSampler:
     @patch("beacon.telemetry.samplers.nic.psutil")
     async def test_sample_exception(self, mock_psutil):
         mock_psutil.net_io_counters.side_effect = Exception("Network error")
-        
+
         sampler = NicSampler()
         metrics = await sampler.sample()
-        
+
         assert metrics == []
 
 
@@ -456,17 +458,17 @@ class TestTcpSampler:
         mock_conn1.status = "ESTABLISHED"
         mock_conn1.laddr.port = 80
         mock_conn1.raddr.ip = "192.168.1.1"
-        
+
         mock_conn2 = Mock()
         mock_conn2.status = "LISTEN"
         mock_conn2.laddr.port = 22
         mock_conn2.raddr = None
-        
+
         mock_psutil.net_connections.return_value = [mock_conn1, mock_conn2]
-        
+
         sampler = TcpSampler()
         metrics = await sampler.sample()
-        
+
         assert len(metrics) == 1
         assert metrics[0].measurement == "tcp"
         assert "established_count" in metrics[0].fields
@@ -476,10 +478,10 @@ class TestTcpSampler:
     @patch("beacon.telemetry.samplers.tcp.psutil")
     async def test_sample_exception(self, mock_psutil):
         mock_psutil.net_connections.side_effect = Exception("TCP error")
-        
+
         sampler = TcpSampler()
         metrics = await sampler.sample()
-        
+
         assert metrics == []
 
 
@@ -509,10 +511,10 @@ lease {
 }
         """
         mock_subprocess.run.return_value = mock_result
-        
+
         sampler = DhcpSampler()
         metrics = await sampler.sample()
-        
+
         assert len(metrics) == 1
         assert metrics[0].measurement == "dhcp"
         assert metrics[0].fields["lease_active"] == 1
@@ -526,10 +528,10 @@ lease {
         mock_result = Mock()
         mock_result.returncode = 1
         mock_subprocess.run.return_value = mock_result
-        
+
         sampler = DhcpSampler()
         metrics = await sampler.sample()
-        
+
         assert metrics == []
 
 
@@ -546,13 +548,13 @@ class TestChangeDetector:
         mock_psutil.net_if_addrs.return_value = {
             "eth0": [Mock(family=Mock(name="AF_INET"), address="192.168.1.100")]
         }
-        
+
         # Mock default gateway
         mock_psutil.net_if_stats.return_value = {"eth0": Mock(isup=True)}
-        
+
         detector = ChangeDetector()
         metrics = await detector.sample()
-        
+
         # First run should not detect changes
         assert metrics == []
 
@@ -560,20 +562,20 @@ class TestChangeDetector:
     @patch("beacon.telemetry.samplers.change.psutil")
     async def test_sample_network_change(self, mock_psutil):
         detector = ChangeDetector()
-        
+
         # First sample
         mock_psutil.net_if_addrs.return_value = {
             "eth0": [Mock(family=Mock(name="AF_INET"), address="192.168.1.100")]
         }
         mock_psutil.net_if_stats.return_value = {"eth0": Mock(isup=True)}
         await detector.sample()
-        
+
         # Second sample with different IP
         mock_psutil.net_if_addrs.return_value = {
             "eth0": [Mock(family=Mock(name="AF_INET"), address="192.168.1.101")]
         }
         metrics = await detector.sample()
-        
+
         assert len(metrics) == 1
         assert metrics[0].measurement == "network_change"
         assert metrics[0].fields["change_detected"] == 1
@@ -582,8 +584,8 @@ class TestChangeDetector:
     @patch("beacon.telemetry.samplers.change.psutil")
     async def test_sample_exception(self, mock_psutil):
         mock_psutil.net_if_addrs.side_effect = Exception("Network error")
-        
+
         detector = ChangeDetector()
         metrics = await detector.sample()
-        
+
         assert metrics == []

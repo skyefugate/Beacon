@@ -127,13 +127,14 @@ class TestWiFiSampler:
 
         calls = [
             AsyncMock(communicate=AsyncMock(return_value=(dev_output.encode(), b"")), returncode=0),
-            AsyncMock(communicate=AsyncMock(return_value=(link_output.encode(), b"")), returncode=0)
+            AsyncMock(
+                communicate=AsyncMock(return_value=(link_output.encode(), b"")), returncode=0
+            ),
         ]
         mock_asyncio.create_subprocess_exec = AsyncMock(side_effect=calls)
-        mock_asyncio.wait_for = AsyncMock(side_effect=[
-            (dev_output.encode(), b""),
-            (link_output.encode(), b"")
-        ])
+        mock_asyncio.wait_for = AsyncMock(
+            side_effect=[(dev_output.encode(), b""), (link_output.encode(), b"")]
+        )
 
         metrics = await sampler.sample()
         assert len(metrics) == 1
@@ -169,13 +170,14 @@ class TestWiFiSampler:
 
         calls = [
             AsyncMock(communicate=AsyncMock(return_value=(dev_output.encode(), b"")), returncode=0),
-            AsyncMock(communicate=AsyncMock(return_value=(link_output.encode(), b"")), returncode=0)
+            AsyncMock(
+                communicate=AsyncMock(return_value=(link_output.encode(), b"")), returncode=0
+            ),
         ]
         mock_asyncio.create_subprocess_exec = AsyncMock(side_effect=calls)
-        mock_asyncio.wait_for = AsyncMock(side_effect=[
-            (dev_output.encode(), b""),
-            (link_output.encode(), b"")
-        ])
+        mock_asyncio.wait_for = AsyncMock(
+            side_effect=[(dev_output.encode(), b""), (link_output.encode(), b"")]
+        )
 
         metrics = await sampler.sample()
         assert len(metrics) == 0
@@ -209,24 +211,19 @@ class TestWiFiSampler:
         airport_proc = AsyncMock()
         airport_proc.communicate = AsyncMock(side_effect=FileNotFoundError)
 
-        wdutil_output = (
-            "RSSI: -60 dBm\n"
-            "Noise: -95 dBm\n"
-            "Channel: 6\n"
-            "SSID: WdutilTest\n"
-        )
+        wdutil_output = "RSSI: -60 dBm\nNoise: -95 dBm\nChannel: 6\nSSID: WdutilTest\n"
         profiler_proc = AsyncMock()
         profiler_proc.communicate = AsyncMock(return_value=(wdutil_output.encode(), b""))
         profiler_proc.returncode = 0
 
         mock_asyncio.create_subprocess_exec = AsyncMock(side_effect=[airport_proc, profiler_proc])
-        mock_asyncio.wait_for = AsyncMock(side_effect=[
-            FileNotFoundError,
-            (wdutil_output.encode(), b"")
-        ])
+        mock_asyncio.wait_for = AsyncMock(
+            side_effect=[FileNotFoundError, (wdutil_output.encode(), b"")]
+        )
 
         # Test the parser directly since sampler uses system_profiler fallback
         from beacon.collectors.wifi import WiFiCollector
+
         fields = WiFiCollector._parse_wdutil(wdutil_output)
         assert fields["rssi_dbm"] == -60
         assert fields["noise_dbm"] == -95
