@@ -463,3 +463,44 @@ class TestDiskTriggers:
                 assert results[0].fired is False
             else:
                 assert results[0].fired is True
+
+
+class TestBeaconLossTrigger:
+    def test_wifi_beacon_loss_fires_above_threshold(self):
+        from beacon.telemetry.triggers import DEFAULT_TRIGGERS
+
+        rule = next(r for r in DEFAULT_TRIGGERS if r.name == "wifi_beacon_loss")
+        evaluator = TriggerEvaluator(rules=[rule])
+
+        windows = [
+            _make_window(
+                measurement="t_wifi_link",
+                field_name="beacon_lost_count",
+                mean=5.0,
+            )
+        ]
+        results = evaluator.evaluate(windows)
+
+        assert len(results) == 1
+        assert results[0].fired is True
+        assert results[0].event is not None
+        assert "beacon frame loss detected" in results[0].event.message
+
+    def test_wifi_beacon_loss_does_not_fire_below_threshold(self):
+        from beacon.telemetry.triggers import DEFAULT_TRIGGERS
+
+        rule = next(r for r in DEFAULT_TRIGGERS if r.name == "wifi_beacon_loss")
+        evaluator = TriggerEvaluator(rules=[rule])
+
+        windows = [
+            _make_window(
+                measurement="t_wifi_link",
+                field_name="beacon_lost_count",
+                mean=2.0,
+            )
+        ]
+        results = evaluator.evaluate(windows)
+
+        assert len(results) == 1
+        assert results[0].fired is False
+        assert results[0].event is None

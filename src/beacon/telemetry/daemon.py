@@ -12,7 +12,7 @@ import signal
 import sys
 from pathlib import Path
 
-from beacon.config import BeaconSettings, get_settings
+from beacon.config import BeaconSettings, get_settings, reset_settings
 from beacon.telemetry.buffer import SQLiteBuffer
 from beacon.telemetry.export.base import BaseExporter
 from beacon.telemetry.export.file import FileExporter
@@ -66,6 +66,44 @@ def read_pid() -> int | None:
     except (ValueError, ProcessLookupError, PermissionError, OSError):
         pass
     return None
+
+
+def _reload_config(scheduler: TelemetryScheduler, config_path: Path | None = None) -> None:
+    """Reload configuration and apply safe changes to running scheduler."""
+    try:
+        reset_settings()
+        new_settings = get_settings(config_path)
+
+        # Update log level
+        level = getattr(logging, new_settings.log_level.upper(), logging.INFO)
+        logging.getLogger().setLevel(level)
+
+        # Update scheduler settings reference
+        scheduler._settings = new_settings
+        ts = new_settings.telemetry
+
+        # Update sampler intervals
+        for sampler in scheduler._samplers:
+            interval_key = f"tier0_{sampler.name}_interval"
+            if hasattr(ts, interval_key):
+                sampler.default_interval = getattr(ts, interval_key)
+
+        # Update sampler targets for ping, DNS, HTTP
+        for sampler in scheduler._samplers:
+            if sampler.name == "ping" and hasattr(sampler, "_targets"):
+                sampler._targets = ts.ping_targets  # type: ignore[attr-defined]
+                if hasattr(sampler, "_ping_gateway"):
+                    sampler._ping_gateway = ts.ping_gateway  # type: ignore[attr-defined]
+            elif sampler.name == "dns" and hasattr(sampler, "_resolvers"):
+                sampler._resolvers = ts.dns_resolvers  # type: ignore[attr-defined]
+                if hasattr(sampler, "_domains"):
+                    sampler._domains = ts.dns_domains  # type: ignore[attr-defined]
+            elif sampler.name == "http" and hasattr(sampler, "_targets"):
+                sampler._targets = ts.http_targets  # type: ignore[attr-defined]
+
+        logger.info("Configuration reloaded successfully")
+    except Exception as e:
+        logger.error("Failed to reload configuration: %s", e)
 
 
 def _build_scheduler(settings: BeaconSettings) -> TelemetryScheduler:
@@ -132,7 +170,8 @@ async def _run_daemon(settings: BeaconSettings) -> None:
         loop.add_signal_handler(sig, _handle_signal, sig)
 
     def _handle_sighup(signum: int) -> None:
-        logger.info("Received SIGHUP, reloading not yet implemented")
+        logger.info("Received SIGHUP, reloading configuration...")
+        _reload_config(scheduler, settings.config_path)
 
     try:
         loop.add_signal_handler(signal.SIGHUP, _handle_sighup, signal.SIGHUP)

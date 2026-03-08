@@ -124,7 +124,7 @@ class LANCollector(BaseCollector):
 
         # Interface status
         if_stats = psutil.net_if_stats()
-        for iface, stats in if_stats.items():
+        for iface, stats in if_stats.items():  # type: ignore[assignment]
             if iface == "lo" or iface.startswith("lo"):
                 continue
 
@@ -140,9 +140,9 @@ class LANCollector(BaseCollector):
                 Metric(
                     measurement="lan_status",
                     fields={
-                        "is_up": stats.isup,
-                        "speed_mbps": stats.speed,
-                        "mtu": stats.mtu,
+                        "is_up": stats.isup,  # type: ignore[attr-defined]
+                        "speed_mbps": stats.speed,  # type: ignore[attr-defined]
+                        "mtu": stats.mtu,  # type: ignore[attr-defined]
                     },
                     tags={"interface": iface, "role": role},
                     timestamp=now,

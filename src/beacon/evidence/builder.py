@@ -48,7 +48,7 @@ def _capture_health() -> HealthSnapshot:
 
     thermals: list[ThermalHealth] = []
     try:
-        for label, entries in psutil.sensors_temperatures().items():
+        for label, entries in psutil.sensors_temperatures().items():  # type: ignore[attr-defined]
             for entry in entries:
                 thermals.append(
                     ThermalHealth(

@@ -96,7 +96,7 @@ class DeviceCollector(BaseCollector):
 
         # Thermals
         try:
-            temps = psutil.sensors_temperatures()
+            temps = psutil.sensors_temperatures()  # type: ignore[attr-defined]
             for label, entries in temps.items():
                 for entry in entries:
                     fields: dict[str, float | int | str | bool] = {
