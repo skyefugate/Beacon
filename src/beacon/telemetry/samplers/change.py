@@ -146,30 +146,24 @@ class ChangeDetector(BaseSampler):
         system = platform.system()
         if system != "Darwin":
             return None
-        try:
-            import subprocess
 
+        import subprocess
+
+        # Use fast airport -I command instead of slow system_profiler
+        try:
             result = subprocess.run(
-                ["system_profiler", "SPAirPortDataType"],
+                [_AIRPORT_PATH, "-I"],
                 capture_output=True,
                 text=True,
-                timeout=10,
+                timeout=5,
             )
-            if result.returncode != 0:
-                return None
-            in_current = False
-            for line in result.stdout.splitlines():
-                if "Current Network Information:" in line:
-                    in_current = True
-                    continue
-                if in_current:
-                    m = re.match(r"^\s{14}(\S.*):$", line)
-                    if m and ":" not in m.group(1).rstrip(":"):
-                        return m.group(1)
-                    if "Other Local Wi-Fi Networks:" in line:
-                        break
-        except (FileNotFoundError, subprocess.SubprocessError):
+            if result.returncode == 0:
+                fields = WiFiCollector._parse_airport(result.stdout)
+                ssid = fields.get("ssid")
+                return str(ssid) if ssid is not None else None
+        except (FileNotFoundError, OSError, subprocess.SubprocessError):
             pass
+
         return None
 
     def _get_bssid_and_channel(self) -> tuple[str | None, str | None]:

@@ -38,6 +38,9 @@ SIGNALS: list[Signal] = [
     Signal(FaultDomain.DEVICE, "high_cpu", 0.8, "CPU usage >90%"),
     Signal(FaultDomain.DEVICE, "high_memory", 0.8, "Memory usage >90%"),
     Signal(FaultDomain.DEVICE, "high_temperature", 0.6, "CPU temperature critical"),
+    Signal(FaultDomain.DEVICE, "disk_io_slow", 0.7, "Disk I/O latency >50ms"),
+    Signal(FaultDomain.DEVICE, "disk_near_full", 0.8, "Disk usage >85%"),
+    Signal(FaultDomain.DEVICE, "disk_io_critical", 0.9, "Disk I/O latency >200ms"),
     # Wi-Fi domain
     Signal(FaultDomain.WIFI, "weak_signal", 0.9, "Wi-Fi RSSI below -75 dBm"),
     Signal(FaultDomain.WIFI, "low_snr", 0.7, "Signal-to-noise ratio below 15 dB"),
@@ -120,6 +123,38 @@ class HeuristicRuleSet:
                     value=percent_used,
                 )
             )
+
+        # Disk signals
+        if m == "t_disk_usage":
+            used_percent = f.get("used_percent")
+            if isinstance(used_percent, (int, float)) and used_percent > 85:
+                matches.append(
+                    SignalMatch(
+                        signal=self._signal_map["disk_near_full"],
+                        evidence_ref=f"metric:t_disk_usage:used_percent={used_percent}",
+                        value=used_percent,
+                    )
+                )
+
+        if m == "t_disk_io":
+            avg_latency_ms = f.get("avg_latency_ms")
+            if isinstance(avg_latency_ms, (int, float)):
+                if avg_latency_ms > 200:
+                    matches.append(
+                        SignalMatch(
+                            signal=self._signal_map["disk_io_critical"],
+                            evidence_ref=f"metric:t_disk_io:avg_latency_ms={avg_latency_ms}",
+                            value=avg_latency_ms,
+                        )
+                    )
+                elif avg_latency_ms > 50:
+                    matches.append(
+                        SignalMatch(
+                            signal=self._signal_map["disk_io_slow"],
+                            evidence_ref=f"metric:t_disk_io:avg_latency_ms={avg_latency_ms}",
+                            value=avg_latency_ms,
+                        )
+                    )
 
         # Wi-Fi signals
         if m == "wifi_link":

@@ -117,7 +117,7 @@ class InfluxExporter(BaseExporter):
         point = Point(metric.measurement)
         for key, value in metric.tags.items():
             point = point.tag(key, str(value))  # type: ignore
-        for key, value in metric.fields.items():
-            point = point.field(key, value)  # type: ignore
+        for key, value in metric.fields.items():  # type: ignore[assignment]
+            point = point.field(key, value)  # type: ignore[arg-type]
         point = point.time(metric.timestamp, WritePrecision.MS)  # type: ignore
         return point

@@ -202,6 +202,16 @@ DEFAULT_TRIGGERS: list[TriggerRule] = [
         severity=Severity.WARNING,
         message_template="Disk usage sustained high: mean={actual:.1f}% exceeds 80%",
     ),
+    TriggerRule(
+        name="wifi_beacon_loss",
+        measurement="t_wifi_link",
+        field_name="beacon_lost_count",
+        stat="mean",
+        operator=">",
+        value=3.0,
+        severity=Severity.WARNING,
+        message_template="Wi-Fi beacon frame loss detected: mean={actual:.0f} beacons lost",
+    ),
 ]
 
 
