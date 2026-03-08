@@ -20,7 +20,7 @@ class TestWiFiSampler:
     @patch("beacon.telemetry.samplers.wifi.asyncio")
     async def test_macos_airport_success(self, mock_asyncio, mock_platform):
         mock_platform.system.return_value = "Darwin"
-        WiFiSampler()
+        sampler = WiFiSampler()
 
         airport_output = (
             "     agrCtlRSSI: -55\n"
@@ -38,13 +38,219 @@ class TestWiFiSampler:
         mock_asyncio.subprocess = asyncio.subprocess
         mock_asyncio.wait_for = AsyncMock(return_value=(airport_output.encode(), b""))
 
-        # Directly test the parser reuse
-        from beacon.collectors.wifi import WiFiCollector
+        metrics = await sampler.sample()
+        assert len(metrics) == 1
+        assert metrics[0].fields["rssi_dbm"] == -55
+        assert metrics[0].fields["snr_db"] == 35
 
-        fields = WiFiCollector._parse_airport(airport_output)
-        assert fields["rssi_dbm"] == -55
-        assert fields["noise_dbm"] == -90
-        assert fields["ssid"] == "TestNetwork"
+    @pytest.mark.asyncio
+    @patch("beacon.telemetry.samplers.wifi.platform")
+    @patch("beacon.telemetry.samplers.wifi.asyncio")
+    async def test_airport_command_failure(self, mock_asyncio, mock_platform):
+        mock_platform.system.return_value = "Darwin"
+        sampler = WiFiSampler()
+
+        proc = AsyncMock()
+        proc.communicate = AsyncMock(return_value=(b"", b"command not found"))
+        proc.returncode = 1
+
+        mock_asyncio.create_subprocess_exec = AsyncMock(return_value=proc)
+        mock_asyncio.wait_for = AsyncMock(return_value=(b"", b"command not found"))
+
+        metrics = await sampler.sample()
+        assert len(metrics) == 0
+
+    @pytest.mark.asyncio
+    @patch("beacon.telemetry.samplers.wifi.platform")
+    @patch("beacon.telemetry.samplers.wifi.asyncio")
+    async def test_airport_timeout(self, mock_asyncio, mock_platform):
+        mock_platform.system.return_value = "Darwin"
+        sampler = WiFiSampler()
+
+        mock_asyncio.create_subprocess_exec = AsyncMock()
+        mock_asyncio.wait_for = AsyncMock(side_effect=asyncio.TimeoutError)
+
+        metrics = await sampler.sample()
+        assert len(metrics) == 0
+
+    @pytest.mark.asyncio
+    @patch("beacon.telemetry.samplers.wifi.platform")
+    @patch("beacon.telemetry.samplers.wifi.asyncio")
+    async def test_malformed_airport_output(self, mock_asyncio, mock_platform):
+        mock_platform.system.return_value = "Darwin"
+        sampler = WiFiSampler()
+
+        malformed_output = "garbage\nno colons here\ninvalid format"
+        proc = AsyncMock()
+        proc.communicate = AsyncMock(return_value=(malformed_output.encode(), b""))
+        proc.returncode = 0
+
+        mock_asyncio.create_subprocess_exec = AsyncMock(return_value=proc)
+        mock_asyncio.wait_for = AsyncMock(return_value=(malformed_output.encode(), b""))
+
+        metrics = await sampler.sample()
+        assert len(metrics) == 0
+
+    @pytest.mark.asyncio
+    @patch("beacon.telemetry.samplers.wifi.platform")
+    @patch("beacon.telemetry.samplers.wifi.asyncio")
+    async def test_missing_fields_airport(self, mock_asyncio, mock_platform):
+        mock_platform.system.return_value = "Darwin"
+        sampler = WiFiSampler()
+
+        partial_output = "     SSID: TestNetwork\n"  # Missing RSSI/noise
+        proc = AsyncMock()
+        proc.communicate = AsyncMock(return_value=(partial_output.encode(), b""))
+        proc.returncode = 0
+
+        mock_asyncio.create_subprocess_exec = AsyncMock(return_value=proc)
+        mock_asyncio.wait_for = AsyncMock(return_value=(partial_output.encode(), b""))
+
+        metrics = await sampler.sample()
+        assert len(metrics) == 1
+        assert "snr_db" not in metrics[0].fields  # No SNR without both RSSI and noise
+
+    @pytest.mark.asyncio
+    @patch("beacon.telemetry.samplers.wifi.platform")
+    @patch("beacon.telemetry.samplers.wifi.asyncio")
+    async def test_linux_iw_success(self, mock_asyncio, mock_platform):
+        mock_platform.system.return_value = "Linux"
+        sampler = WiFiSampler()
+
+        dev_output = "Interface wlan0\n\tifindex 3\n"
+        link_output = (
+            "Connected to aa:bb:cc:dd:ee:ff (on wlan0)\n"
+            "\tSSID: TestWiFi\n"
+            "\tsignal: -45 dBm\n"
+            "\ttx bitrate: 144.4 MBit/s\n"
+        )
+
+        calls = [
+            AsyncMock(communicate=AsyncMock(return_value=(dev_output.encode(), b"")), returncode=0),
+            AsyncMock(communicate=AsyncMock(return_value=(link_output.encode(), b"")), returncode=0)
+        ]
+        mock_asyncio.create_subprocess_exec = AsyncMock(side_effect=calls)
+        mock_asyncio.wait_for = AsyncMock(side_effect=[
+            (dev_output.encode(), b""),
+            (link_output.encode(), b"")
+        ])
+
+        metrics = await sampler.sample()
+        assert len(metrics) == 1
+        assert metrics[0].fields["rssi_dbm"] == -45
+        assert metrics[0].fields["tx_rate_mbps"] == 144.4
+
+    @pytest.mark.asyncio
+    @patch("beacon.telemetry.samplers.wifi.platform")
+    @patch("beacon.telemetry.samplers.wifi.asyncio")
+    async def test_linux_iw_dev_failure(self, mock_asyncio, mock_platform):
+        mock_platform.system.return_value = "Linux"
+        sampler = WiFiSampler()
+
+        proc = AsyncMock()
+        proc.communicate = AsyncMock(return_value=(b"", b"No such device"))
+        proc.returncode = 1
+
+        mock_asyncio.create_subprocess_exec = AsyncMock(return_value=proc)
+        mock_asyncio.wait_for = AsyncMock(return_value=(b"", b"No such device"))
+
+        metrics = await sampler.sample()
+        assert len(metrics) == 0
+
+    @pytest.mark.asyncio
+    @patch("beacon.telemetry.samplers.wifi.platform")
+    @patch("beacon.telemetry.samplers.wifi.asyncio")
+    async def test_linux_not_connected(self, mock_asyncio, mock_platform):
+        mock_platform.system.return_value = "Linux"
+        sampler = WiFiSampler()
+
+        dev_output = "Interface wlan0\n"
+        link_output = "Not connected.\n"
+
+        calls = [
+            AsyncMock(communicate=AsyncMock(return_value=(dev_output.encode(), b"")), returncode=0),
+            AsyncMock(communicate=AsyncMock(return_value=(link_output.encode(), b"")), returncode=0)
+        ]
+        mock_asyncio.create_subprocess_exec = AsyncMock(side_effect=calls)
+        mock_asyncio.wait_for = AsyncMock(side_effect=[
+            (dev_output.encode(), b""),
+            (link_output.encode(), b"")
+        ])
+
+        metrics = await sampler.sample()
+        assert len(metrics) == 0
+
+    @pytest.mark.asyncio
+    @patch("beacon.telemetry.samplers.wifi.platform")
+    @patch("beacon.telemetry.samplers.wifi.asyncio")
+    async def test_linux_no_interfaces(self, mock_asyncio, mock_platform):
+        mock_platform.system.return_value = "Linux"
+        sampler = WiFiSampler()
+
+        dev_output = "No wireless interfaces found\n"
+        proc = AsyncMock()
+        proc.communicate = AsyncMock(return_value=(dev_output.encode(), b""))
+        proc.returncode = 0
+
+        mock_asyncio.create_subprocess_exec = AsyncMock(return_value=proc)
+        mock_asyncio.wait_for = AsyncMock(return_value=(dev_output.encode(), b""))
+
+        metrics = await sampler.sample()
+        assert len(metrics) == 0
+
+    @pytest.mark.asyncio
+    @patch("beacon.telemetry.samplers.wifi.platform")
+    @patch("beacon.telemetry.samplers.wifi.asyncio")
+    async def test_wdutil_parsing(self, mock_asyncio, mock_platform):
+        mock_platform.system.return_value = "Darwin"
+        sampler = WiFiSampler()
+
+        # Airport fails, system_profiler succeeds
+        airport_proc = AsyncMock()
+        airport_proc.communicate = AsyncMock(side_effect=FileNotFoundError)
+
+        wdutil_output = (
+            "RSSI: -60 dBm\n"
+            "Noise: -95 dBm\n"
+            "Channel: 6\n"
+            "SSID: WdutilTest\n"
+        )
+        profiler_proc = AsyncMock()
+        profiler_proc.communicate = AsyncMock(return_value=(wdutil_output.encode(), b""))
+        profiler_proc.returncode = 0
+
+        mock_asyncio.create_subprocess_exec = AsyncMock(side_effect=[airport_proc, profiler_proc])
+        mock_asyncio.wait_for = AsyncMock(side_effect=[
+            FileNotFoundError,
+            (wdutil_output.encode(), b"")
+        ])
+
+        # Test the parser directly since sampler uses system_profiler fallback
+        from beacon.collectors.wifi import WiFiCollector
+        fields = WiFiCollector._parse_wdutil(wdutil_output)
+        assert fields["rssi_dbm"] == -60
+        assert fields["noise_dbm"] == -95
+
+    @pytest.mark.asyncio
+    @patch("beacon.telemetry.samplers.wifi.platform")
+    async def test_unsupported_platform(self, mock_platform):
+        mock_platform.system.return_value = "Windows"
+        sampler = WiFiSampler()
+
+        metrics = await sampler.sample()
+        assert len(metrics) == 0
+
+    @pytest.mark.asyncio
+    @patch("beacon.telemetry.samplers.wifi.platform")
+    @patch("beacon.telemetry.samplers.wifi.asyncio")
+    async def test_exception_handling(self, mock_asyncio, mock_platform):
+        mock_platform.system.return_value = "Darwin"
+        sampler = WiFiSampler()
+
+        mock_asyncio.create_subprocess_exec = AsyncMock(side_effect=OSError("Permission denied"))
+
+        metrics = await sampler.sample()
+        assert len(metrics) == 0
 
 
 class TestPingSampler:
