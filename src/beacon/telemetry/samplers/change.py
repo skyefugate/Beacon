@@ -142,7 +142,11 @@ class ChangeDetector(BaseSampler):
         return None
 
     def _get_ssid(self) -> str | None:
-        """Get current SSID (macOS only for now)."""
+        """Get current SSID (macOS only for now).
+
+        Uses airport -I for fast detection (< 1s), falling back to
+        system_profiler SPAirPortDataType if airport is unavailable.
+        """
         system = platform.system()
         if system != "Darwin":
             return None
@@ -205,7 +209,7 @@ class ChangeDetector(BaseSampler):
                 ["system_profiler", "SPAirPortDataType"],
                 capture_output=True,
                 text=True,
-                timeout=10,
+                timeout=15,
             )
             if result.returncode == 0:
                 fields, _ = WiFiCollector._parse_system_profiler(result.stdout)
