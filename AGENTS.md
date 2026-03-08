@@ -73,7 +73,7 @@ Beacon is a network diagnostics and observability platform with two operational 
 1. **Linting**: `ruff check src/ tests/` must pass (line length: 100 chars)
 2. **Type Checking**: `mypy src/` must pass (strict mode)
 3. **Unit Tests**: `pytest tests/` must pass with >80% coverage
-4. **Pre-commit Hooks**: Install with `pre-commit install` (see `docs/pre-commit-setup.md`)
+4. **Kiro Hooks**: Use `beacon-dev` agent for automated formatting/testing (see `docs/development-workflow.md`)
 
 ### Test Structure
 
@@ -214,4 +214,4 @@ New collectors/runners must:
 **Architecture**: See `.kiro/steering/architecture.md`  
 **Testing**: See `.kiro/steering/testing-standards.md`  
 **API Design**: See `.kiro/steering/api-standards.md`  
-**Pre-commit Setup**: See `docs/pre-commit-setup.md`
+**Development Workflow**: See `docs/development-workflow.md`

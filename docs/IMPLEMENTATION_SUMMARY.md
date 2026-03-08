@@ -5,20 +5,24 @@
 
 ## What Was Created
 
-### Pre-commit Hooks & Developer Tooling
+### Kiro Agent Configuration & Hooks
 
-1. **`.pre-commit-config.yaml`**
-   - Ruff linting and formatting (auto-fix)
-   - MyPy type checking (strict mode)
-   - Pytest execution (fail-fast)
-   - Standard checks (trailing whitespace, YAML validation, merge conflicts)
+1. **`.kiro/beacon-dev.agent.yaml`**
+   - Auto-format Python files after writing (Ruff)
+   - Auto-lint and fix issues (Ruff)
+   - Type check source files (MyPy)
+   - Run unit tests after each agent turn (pytest)
+   - Validate YAML syntax
+   - Add project context on agent spawn
 
-2. **`docs/pre-commit-setup.md`**
-   - Installation instructions
-   - Usage guide
+2. **`docs/development-workflow.md`**
+   - Setup instructions (Homebrew + venv)
+   - Automated checks via Kiro hooks
+   - Manual command reference
+   - Development cycle guide
    - Troubleshooting tips
 
-**Impact**: Every commit now automatically runs linting, type checking, and tests before allowing the commit.
+**Impact**: Agent automatically formats, lints, type-checks, and tests code as it writes. No manual pre-commit setup needed.
 
 ---
 
@@ -209,8 +213,8 @@ git commit --no-verify
 
 | File | Purpose | Mode |
 |------|---------|------|
-| `.pre-commit-config.yaml` | Pre-commit hook configuration | - |
-| `docs/pre-commit-setup.md` | Developer setup guide | - |
+| `.kiro/beacon-dev.agent.yaml` | Agent config with hooks | - |
+| `docs/development-workflow.md` | Developer workflow guide | - |
 | `.kiro/steering/product.md` | Product vision and goals | always |
 | `.kiro/steering/architecture.md` | System architecture | always |
 | `.kiro/steering/testing-standards.md` | Test requirements | always |
@@ -221,7 +225,7 @@ git commit --no-verify
 | `.kiro/skills/create-diagnostic-pack.md` | Skill: Create pack | - |
 | `docs/github-actions-audit.md` | CI/CD audit and fixes | - |
 
-**Total**: 11 files created, 10 commits, 1 branch pushed
+**Total**: 11 files created
 
 ---
 
@@ -231,7 +235,7 @@ git commit --no-verify
 
 1. **Review this PR**: https://github.com/skyefugate/Beacon/pull/new/feature/agent-steering-and-skills
 2. **Fix GitHub Actions**: Apply fixes from `docs/github-actions-audit.md`
-3. **Install pre-commit**: All developers run `pre-commit install`
+3. **Use beacon-dev agent**: `kiro-cli chat --agent beacon-dev` for automated code quality
 
 ### This Sprint (P1)
 
@@ -256,15 +260,15 @@ All files have been committed and pushed to `feature/agent-steering-and-skills` 
 To test locally:
 ```bash
 git checkout feature/agent-steering-and-skills
-pre-commit install
-pre-commit run --all-files
+kiro-cli chat --agent beacon-dev
+# Hooks will auto-run when agent modifies code
 ```
 
 ---
 
 ## Questions?
 
-- **Pre-commit hooks**: See `docs/pre-commit-setup.md`
+- **Development workflow**: See `docs/development-workflow.md`
 - **Adding collectors**: See `.kiro/skills/add-collector.md`
 - **Adding runners**: See `.kiro/skills/add-runner.md`
 - **Creating packs**: See `.kiro/skills/create-diagnostic-pack.md`
