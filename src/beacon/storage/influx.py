@@ -57,8 +57,8 @@ class InfluxStorage:
     def health_check(self) -> bool:
         """Check if InfluxDB is reachable."""
         try:
-            health = self._client.health()
-            return health.status == "pass"
+            health = self._client.ping()
+            return health
         except Exception:
             logger.warning("InfluxDB health check failed", exc_info=True)
             return False

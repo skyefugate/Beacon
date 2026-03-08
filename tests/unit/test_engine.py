@@ -105,6 +105,114 @@ class TestHeuristicRuleSet:
         matches = rules.evaluate([envelope])
         assert any(m.signal.name == "gateway_unreachable" for m in matches)
 
+    def test_matches_high_disk_latency(self):
+        envelope = _make_envelope(
+            "disk",
+            metrics=[
+                Metric(
+                    measurement="t_disk_io",
+                    fields={"latency_ms": 350.0, "util_pct": 40.0},
+                    tags={"device": "disk0"},
+                    timestamp=_now(),
+                ),
+            ],
+        )
+        rules = HeuristicRuleSet()
+        matches = rules.evaluate([envelope])
+        assert any(m.signal.name == "high_disk_latency" for m in matches)
+        assert not any(m.signal.name == "high_disk_io" for m in matches)
+
+    def test_matches_disk_full(self):
+        envelope = _make_envelope(
+            "disk",
+            metrics=[
+                Metric(
+                    measurement="t_disk_usage",
+                    fields={"used_pct": 97.5},
+                    tags={"mount": "/"},
+                    timestamp=_now(),
+                ),
+            ],
+        )
+        rules = HeuristicRuleSet()
+        matches = rules.evaluate([envelope])
+        assert any(m.signal.name == "disk_full" for m in matches)
+        match = next(m for m in matches if m.signal.name == "disk_full")
+        assert match.value == 97.5
+        assert match.signal.domain == FaultDomain.DEVICE
+
+    def test_matches_high_disk_io(self):
+        envelope = _make_envelope(
+            "disk",
+            metrics=[
+                Metric(
+                    measurement="t_disk_io",
+                    fields={"latency_ms": 50.0, "util_pct": 95.0},
+                    tags={"device": "disk0"},
+                    timestamp=_now(),
+                ),
+            ],
+        )
+        rules = HeuristicRuleSet()
+        matches = rules.evaluate([envelope])
+        assert any(m.signal.name == "high_disk_io" for m in matches)
+
+    def test_no_disk_signal_for_normal_disk(self):
+        envelope = _make_envelope(
+            "disk",
+            metrics=[
+                Metric(
+                    measurement="t_disk_io",
+                    fields={"latency_ms": 10.0, "util_pct": 30.0},
+                    tags={"device": "disk0"},
+                    timestamp=_now(),
+                ),
+                Metric(
+                    measurement="t_disk_usage",
+                    fields={"used_pct": 60.0},
+                    tags={"mount": "/"},
+                    timestamp=_now(),
+                ),
+            ],
+        )
+        rules = HeuristicRuleSet()
+        matches = rules.evaluate([envelope])
+        disk_matches = [
+            m
+            for m in matches
+            if m.signal.name in ("high_disk_latency", "disk_full", "high_disk_io")
+        ]
+        assert len(disk_matches) == 0
+
+    def test_disk_signals_contribute_to_device_domain(self):
+        """Disk signals should push the fault domain engine toward DEVICE."""
+        from beacon.engine.fault_domain import FaultDomainEngine
+
+        now = _now()
+        envelopes = [
+            _make_envelope(
+                "disk",
+                metrics=[
+                    Metric(
+                        measurement="t_disk_io",
+                        fields={"latency_ms": 500.0, "util_pct": 98.0},
+                        tags={"device": "disk0"},
+                        timestamp=now,
+                    ),
+                    Metric(
+                        measurement="t_disk_usage",
+                        fields={"used_pct": 99.0},
+                        tags={"mount": "/"},
+                        timestamp=now,
+                    ),
+                ],
+            ),
+        ]
+        engine = FaultDomainEngine()
+        result, _ = engine.analyze(envelopes)
+        assert result.fault_domain == FaultDomain.DEVICE
+        assert result.confidence > 0.0
+
 
 class TestEventCorrelator:
     def test_correlates_nearby_events_and_metrics(self):
@@ -130,7 +238,7 @@ class TestEventCorrelator:
             ],
         )
 
-        correlator = EventCorrelator(window_seconds=5.0)
+        correlator = EventCorrelator(window_seconds=45.0)
         correlations = correlator.correlate([envelope])
         assert len(correlations) >= 1
         assert len(correlations[0].correlated_metrics) >= 1
@@ -161,6 +269,34 @@ class TestEventCorrelator:
         # Event exists but no correlated metrics within window
         if correlations:
             assert len(correlations[0].correlated_metrics) == 0
+
+    def test_correlates_events_30s_apart(self):
+        """Events 30 s apart must correlate with the new 45 s default window."""
+        now = _now()
+        envelope = _make_envelope(
+            "mixed",
+            metrics=[
+                Metric(
+                    measurement="wifi_link",
+                    fields={"rssi_dbm": -75},
+                    tags={"interface": "en0"},
+                    timestamp=now - timedelta(seconds=30),
+                ),
+            ],
+            events=[
+                Event(
+                    event_type="bssid_change",
+                    severity=Severity.WARNING,
+                    message="BSSID roam detected",
+                    timestamp=now,
+                ),
+            ],
+        )
+
+        correlator = EventCorrelator()  # uses default 45 s
+        correlations = correlator.correlate([envelope])
+        assert len(correlations) >= 1, "30 s gap should correlate within 45 s window"
+        assert len(correlations[0].correlated_metrics) >= 1
 
 
 class TestConfidenceScorer:
