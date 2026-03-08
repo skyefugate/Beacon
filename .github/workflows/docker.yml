@@ -32,7 +32,7 @@ jobs:
 
       - name: Extract metadata — beacon-core
         id: meta-core
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@v6
         with:
           images: ghcr.io/${{ github.repository_owner }}/beacon-core
           tags: |
@@ -41,7 +41,7 @@ jobs:
 
       - name: Extract metadata — beacon-collector
         id: meta-collector
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@v6
         with:
           images: ghcr.io/${{ github.repository_owner }}/beacon-collector
           tags: |
