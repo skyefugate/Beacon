@@ -218,25 +218,25 @@ def apply_config_reload(
     ping_sampler = sampler_by_name.get("ping")
     if ping_sampler is not None:
         if old_ts.ping_targets != new_ts.ping_targets:
-            ping_sampler._targets = list(new_ts.ping_targets)
+            ping_sampler._targets = list(new_ts.ping_targets)  # type: ignore[attr-defined]
             logger.info("SIGHUP reload: ping_targets -> %s", new_ts.ping_targets)
         if old_ts.ping_gateway != new_ts.ping_gateway:
-            ping_sampler._ping_gateway = new_ts.ping_gateway
+            ping_sampler._ping_gateway = new_ts.ping_gateway  # type: ignore[attr-defined]
             logger.info("SIGHUP reload: ping_gateway -> %s", new_ts.ping_gateway)
 
     dns_sampler = sampler_by_name.get("dns")
     if dns_sampler is not None:
         if old_ts.dns_resolvers != new_ts.dns_resolvers:
-            dns_sampler._resolvers = list(new_ts.dns_resolvers)
+            dns_sampler._resolvers = list(new_ts.dns_resolvers)  # type: ignore[attr-defined]
             logger.info("SIGHUP reload: dns_resolvers -> %s", new_ts.dns_resolvers)
         if old_ts.dns_domains != new_ts.dns_domains:
-            dns_sampler._domains = list(new_ts.dns_domains)
+            dns_sampler._domains = list(new_ts.dns_domains)  # type: ignore[attr-defined]
             logger.info("SIGHUP reload: dns_domains -> %s", new_ts.dns_domains)
 
     http_sampler = sampler_by_name.get("http")
     if http_sampler is not None:
         if old_ts.http_targets != new_ts.http_targets:
-            http_sampler._targets = list(new_ts.http_targets)
+            http_sampler._targets = list(new_ts.http_targets)  # type: ignore[attr-defined]
             logger.info("SIGHUP reload: http_targets -> %s", new_ts.http_targets)
 
     # --- export live settings (informational only) ---
