@@ -11,7 +11,7 @@ from beacon.models.evidence import EventCorrelation
 class EventCorrelator:
     """Correlates events with metrics within a configurable time window."""
 
-    def __init__(self, window_seconds: float = 5.0) -> None:
+    def __init__(self, window_seconds: float = 45.0) -> None:
         self._window = timedelta(seconds=window_seconds)
 
     def correlate(self, envelopes: list[PluginEnvelope]) -> list[EventCorrelation]:

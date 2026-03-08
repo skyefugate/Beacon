@@ -203,6 +203,8 @@ class WiFiCollector(BaseCollector):
                 fields["ssid"] = value
             elif key == "bssid":
                 fields["bssid"] = value
+            elif key == "beaconlostcount":
+                fields["beacon_lost_count"] = int(value)
 
         return fields
 

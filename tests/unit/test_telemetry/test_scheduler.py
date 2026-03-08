@@ -141,3 +141,123 @@ class TestTelemetryScheduler:
         await asyncio.sleep(0.5)
         await scheduler.stop()
         # Should not raise — errors are logged
+
+
+class TestSleepWakeGapDetection:
+    """Tests for the sleep/wake gap detection in _sampler_loop."""
+
+    @pytest.mark.asyncio
+    async def test_emit_sleep_wake_gap_writes_metric(self, settings, buffer):
+        """_emit_sleep_wake_gap should push a t_system_event to the buffer."""
+        sampler = MockSampler()
+        scheduler = TelemetryScheduler(settings, [sampler], buffer)
+        scheduler._buffer.open()
+
+        await scheduler._emit_sleep_wake_gap(
+            sampler_name="mock",
+            gap_seconds=45.7,
+            expected_interval=10.0,
+        )
+
+        # The metric must have landed in the buffer (read_unexported returns (id, Metric) tuples)
+        rows = await scheduler._buffer.read_unexported(batch_size=10)
+        assert len(rows) >= 1
+        gap_rows = [(row_id, m) for row_id, m in rows if m.measurement == "t_system_event"]
+        assert len(gap_rows) == 1
+        _, m = gap_rows[0]
+        assert m.tags["event_type"] == "sleep_wake_gap"
+        assert m.tags["sampler"] == "mock"
+        assert m.fields["gap_seconds"] == pytest.approx(45.7, rel=1e-3)
+        assert m.fields["expected_interval"] == pytest.approx(10.0, rel=1e-3)
+
+        scheduler._buffer.close()
+
+    @pytest.mark.asyncio
+    async def test_no_gap_emitted_on_normal_timing(self, settings, buffer):
+        """When samples arrive within 3x interval, no t_system_event is emitted."""
+        sampler = MockSampler()
+        sampler.default_interval = 1
+
+        scheduler = TelemetryScheduler(settings, [sampler], buffer)
+        await scheduler.start()
+
+        # Run for a bit — normal timing should not emit any gap events
+        await asyncio.sleep(0.3)
+
+        # Read before stop (stop() closes the buffer)
+        rows = await scheduler._buffer.read_unexported(batch_size=100)
+        gap_rows = [(row_id, m) for row_id, m in rows if m.measurement == "t_system_event"]
+
+        await scheduler.stop()
+
+        assert gap_rows == [], f"Unexpected gap metrics: {gap_rows}"
+
+    @pytest.mark.asyncio
+    async def test_gap_emitted_when_large_elapsed_time(self, settings, buffer):
+        """When monotonic clock jumps (simulated), a t_system_event metric is emitted."""
+        import unittest.mock as mock
+        from beacon.telemetry import scheduler as sched_mod
+
+        sampler = MockSampler()
+        sampler.default_interval = 10  # 10-second interval
+
+        scheduler = TelemetryScheduler(settings, [sampler], buffer)
+        scheduler._buffer.open()
+
+        # Simulate a large monotonic jump: first call returns T=0, second T=35
+        # (35s > 3 * 10s threshold = 30s)
+        monotonic_values = [0.0, 35.0]
+
+        call_idx = [0]
+
+        def fake_monotonic():
+            val = monotonic_values[call_idx[0]]
+            call_idx[0] = min(call_idx[0] + 1, len(monotonic_values) - 1)
+            return val
+
+        with mock.patch.object(sched_mod.time, "monotonic", side_effect=fake_monotonic):
+            # Manually drive the gap-detection portion of _sampler_loop
+            last_sample_wall = sched_mod.time.monotonic()  # returns 0.0
+            interval = sampler.default_interval
+
+            now_wall = sched_mod.time.monotonic()  # returns 35.0
+            elapsed = now_wall - last_sample_wall
+            threshold = interval * sched_mod._SLEEP_WAKE_GAP_MULTIPLIER
+
+            assert elapsed > threshold, "Test setup: gap must exceed threshold"
+            await scheduler._emit_sleep_wake_gap(sampler.name, elapsed, float(interval))
+
+        rows = await scheduler._buffer.read_unexported(batch_size=10)
+        gap_rows = [(row_id, m) for row_id, m in rows if m.measurement == "t_system_event"]
+        assert len(gap_rows) == 1
+        _, m = gap_rows[0]
+        assert m.fields["gap_seconds"] == pytest.approx(35.0, rel=1e-3)
+        assert m.fields["expected_interval"] == pytest.approx(10.0, rel=1e-3)
+        assert m.tags["event_type"] == "sleep_wake_gap"
+
+        scheduler._buffer.close()
+
+    def test_gap_threshold_constant(self):
+        """_SLEEP_WAKE_GAP_MULTIPLIER must be 3 per the issue spec."""
+        from beacon.telemetry import scheduler as sched_mod
+
+        assert sched_mod._SLEEP_WAKE_GAP_MULTIPLIER == 3
+
+    @pytest.mark.asyncio
+    async def test_emit_gap_metric_shape(self, settings, buffer):
+        """Gap metric must have correct measurement, fields, and tags."""
+        sampler = MockSampler()
+        scheduler = TelemetryScheduler(settings, [sampler], buffer)
+        scheduler._buffer.open()
+
+        await scheduler._emit_sleep_wake_gap("wifi", 120.0, 30.0)
+
+        rows = await scheduler._buffer.read_unexported(batch_size=10)
+        gap_rows = [(row_id, m) for row_id, m in rows if m.measurement == "t_system_event"]
+        assert gap_rows, "Expected at least one t_system_event row"
+        _, m = gap_rows[0]
+        assert m.measurement == "t_system_event"
+        assert set(m.fields.keys()) == {"gap_seconds", "expected_interval"}
+        assert set(m.tags.keys()) >= {"event_type", "sampler"}
+
+        scheduler._buffer.close()

@@ -57,8 +57,8 @@ class InfluxStorage:
     def health_check(self) -> bool:
         """Check if InfluxDB is reachable."""
         try:
-            health = self._client.health()
-            return health.status == "pass"
+            health = self._client.ping()
+            return health
         except Exception:
             logger.warning("InfluxDB health check failed", exc_info=True)
             return False
@@ -75,8 +75,8 @@ class InfluxStorage:
             point = point.tag(key, str(value))  # type: ignore
         if run_id:
             point = point.tag("run_id", run_id)  # type: ignore
-        for key, value in metric.fields.items():
-            point = point.field(key, value)  # type: ignore
+        for key, value in metric.fields.items():  # type: ignore[assignment]
+            point = point.field(key, value)  # type: ignore[arg-type]
         point = point.time(metric.timestamp, WritePrecision.MS)  # type: ignore
         return point
 
