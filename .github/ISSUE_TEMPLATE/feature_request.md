@@ -1,14 +1,38 @@
 ---
 name: Feature Request
-about: Suggest a feature for Beacon
+about: Suggest an idea for Beacon
+title: '[FEATURE] '
 labels: enhancement
+assignees: ''
 ---
 
-## Problem
-<!-- What problem does this solve? -->
+**Is your feature request related to a problem? Please describe.**
+A clear and concise description of what the problem is. Ex. I'm always frustrated when [...]
 
-## Proposed Solution
-<!-- How should it work? -->
+**Describe the solution you'd like**
+A clear and concise description of what you want to happen.
 
-## Alternatives Considered
-<!-- Any other approaches? -->
+**Who needs this and when?**
+Describe the use case. Who would use this feature and in what situations?
+
+**Priority / Impact**
+How important is this to you?
+- [ ] Nice-to-have
+- [ ] Important
+- [ ] Blocking my workflow
+
+**Scope**
+Which parts of Beacon does this affect?
+- [ ] Collectors
+- [ ] Backend/Engine
+- [ ] UI
+- [ ] CLI
+- [ ] Packaging/Installation
+- [ ] Documentation
+- [ ] Other: ___________
+
+**Describe alternatives you've considered**
+A clear and concise description of any alternative solutions or features you've considered.
+
+**Additional context**
+Add any other context, screenshots, or examples about the feature request here.
