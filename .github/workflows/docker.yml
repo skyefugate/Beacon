@@ -49,7 +49,7 @@ jobs:
             type=sha,prefix=sha-
 
       - name: Build and push beacon-core
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           file: docker/Dockerfile.core
@@ -61,7 +61,7 @@ jobs:
           cache-to: type=gha,mode=max,scope=beacon-core
 
       - name: Build and push beacon-collector
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           file: docker/Dockerfile.collector
